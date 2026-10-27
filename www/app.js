@@ -1,5 +1,7 @@
 "use strict";
 const $=(s,e=document)=>e.querySelector(s),act={};
+document.body.insertAdjacentHTML("beforeend",`<div id="sp"><div class="lg"><b class="r">A</b><b class="w">A</b></div><div class="nm">${[..."AniManxwa"].map((c,i)=>`<span class="${i<3?"a":"m"}" style="--i:${i}">${c}</span>`).join("")}</div></div>`);
+setTimeout(()=>{const x=document.getElementById("sp");x&&x.remove()},2800);
 const H1="43ce4e22fdc2538fe7c94f4d61d559d62f7849164bfef97493ab74f05d31fe93",H2="b1343a7a42a7919658db5bd928d9655813636d0e4ccbc9200a479e3ce6921f05",HC="3358df839d57cbd194b4c7e2ae67b293d2dd8420fdaa811de6bcce5a31cb4539",TYPES=["Manga","Manhwa","Manhua","Novella"],
 GENRES=["Harakat","Ramantika","Fantaziya","Komedia","Horror","Drama","Ilmiy-Fantastika","Sarguzasht","Sirli","Hayotdan parcha","Sport","Psixologik","G'ayratabiiy","O'zga dunyo"];
 const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -42,7 +44,7 @@ const chip=(a,v,on)=>`<span class="ch ${on?"on":""}" data-a="${a}" data-v="${E(v
 function search(){return `<input class="q" id="qi" value="${E(Q)}" placeholder="Nom yoki muallif bo'yicha qidiring"><div class="chips">${TYPES.map(t=>chip("ty",t,TY==t)).join("")}</div><div class="chips">${GENRES.map(g=>chip("gn",g,GN==g)).join("")}</div><div class="gr" id="sg">${sres().map(card).join("")||'<p class="mu">Hech narsa topilmadi</p>'}</div>`}
 act.ty=d=>{TY=TY==d.v?"":d.v;render()};act.gn=d=>{GN=GN==d.v?"":d.v;render()};
 const cov=k=>{const l=(S.saved[k]||[]).map(i=>S.manga.find(m=>m.id==i)).filter(Boolean).slice(0,4);return `<div class="cv${l.length==1?" c1":""}">${l.map(m=>`<img src="${m.cover}" draggable="false">`).join("")||"<i>♥</i>"}</div>`};
-const copy=async t=>{try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}toast("ID nusxalandi ✓")};
+const copy=async(t,msg)=>{try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}toast(msg||"Nusxalandi ✓")};
 function burst(el){const r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;for(let i=0;i<8;i++){const s=document.createElement("span"),g=i*.785;s.className="fx";s.textContent="♥";s.style.cssText=`left:${x}px;top:${y}px;--x:${Math.cos(g)*38}px;--y:${Math.sin(g)*38}px`;document.body.appendChild(s);setTimeout(()=>s.remove(),750)}}
 function ask(t,v,cb){const d=document.createElement("div");d.className="dg";d.innerHTML=`<div class="bd"></div><div class="dp"><h4>${t}</h4><input class="in" maxlength="40" placeholder="Playlist nomi" value="${E(v)}"><div class="two"><button class="bt2">Bekor</button><button class="btn">Saqlash</button></div></div>`;document.body.appendChild(d);const i=$("input",d),x=()=>d.remove();setTimeout(()=>i.focus(),50);$(".bd",d).onclick=$(".bt2",d).onclick=x;$(".btn",d).onclick=()=>{const n=i.value.trim();if(n){x();cb(n)}}}
 function sheet(id){let s=$("#sh");if(!s){s=document.createElement("div");s.id="sh";document.body.appendChild(s)}s.hidden=false;
@@ -58,7 +60,7 @@ act.plren=d=>ask("Playlist nomini o'zgartirish",d.n,n=>{if(n==d.n)return;if(S.sa
 act.pldel=d=>{if(confirm("Playlist o'chirilsinmi?")){delete S.saved[d.n];save();ST.pop();render()}};
 /* ---- manga sahifasi va o'qish ---- */
 function detail(id){const m=S.manga.find(x=>x.id==id);if(!m)return;const cs=[...m.chapters].sort((a,b)=>b.num-a.num);
-ov(`<div class="dh"><img src="${m.cover}" draggable="false"><div><h2>${E(m.title)}</h2>${badge(m).replace("b ","b st ")} ${isNew(m)?'<span class="n">YANGI BOB</span>':""}<p class="mu">${m.type} · ${m.status}<br>${E(m.author)} · ${E(m.studio)} · ${m.year}</p>${heart(m)}</div></div><p>${E(m.desc)}</p><div class="chips">${m.genres.concat(m.tags).map(g=>`<span class="ch">${E(g)}</span>`).join("")}</div><h4>Boblar</h4>${cs.map(c=>`<button class="cb" data-a="read" data-id="${m.id}" data-c="${c.id}">${cl(c)}</button>`).join("")||'<p class="mu">Hali bob yo\'q</p>'}`)}
+ov(`<div class="dh"><img src="${m.cover}" draggable="false"><div><h2>${E(m.title)}</h2>${badge(m).replace("b ","b st ")} ${isNew(m)?'<span class="n">YANGI BOB</span>':""}<p class="mu">${m.type} · ${m.status}<br>${[m.author,m.studio,m.year].filter(x=>x&&x!="-").map(E).join(" · ")}</p>${heart(m)} <button class="bt2" data-a="lnk" data-id="${m.id}">🔗 Havola</button></div></div><p>${E(m.desc)}</p><div class="chips">${m.genres.concat(m.tags).map(g=>`<span class="ch">${E(g)}</span>`).join("")}</div><h4>Boblar</h4>${cs.map(c=>`<button class="cb" data-a="read" data-id="${m.id}" data-c="${c.id}">${cl(c)}</button>`).join("")||'<p class="mu">Hali bob yo\'q</p>'}`)}
 act.open=d=>detail(d.id);
 act.read=d=>{const m=S.manga.find(x=>x.id==d.id),cs=[...m.chapters].sort((a,b)=>a.num-b.num),i=cs.findIndex(x=>x.id==d.c),c=cs[i];if(!c)return;if(d.rep)ST.pop();m.reads++;if(!S.read.includes(m.id))S.read.push(m.id);save();
 const nb=(x,t)=>x?`<button class="btn" data-a="read" data-rep="1" data-id="${m.id}" data-c="${x.id}">${t}</button>`:"";
@@ -67,7 +69,7 @@ ov(`<h4>${E(m.title)} · ${cl(c)}</h4><div class="pgs">${c.pages.map(p=>`<img sr
 /* ---- profil ---- */
 function prof(){return `<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2></div><div class="menu">${[["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["soon","Bildirishnoma"],["soon","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft" id="idbox">ID: <b>${S.uid.replace(/(\d{4})(?=\d)/g,"$1 ")}</b><br><span class="mu">Nusxalash uchun ikki marta bosing</span><br>Hisob: ${S.bal} so'm</div>`}
 act.soon=()=>toast("Tez orada");
-act.edit=()=>{AV=S.avatar;ov(`<h3>Profilni tahrirlash</h3><label class="bt2">Rasm tanlash<input type="file" accept="image/*" id="av" hidden></label><input class="in" id="nm" value="${E(S.name)}" placeholder="Ismingiz"><button class="btn" data-a="psave">Saqlash</button>`)};
+act.edit=()=>{AV=S.avatar;ov(`<h3>Profilni tahrirlash</h3><label class="bt2">Rasm tanlash<input type="file" accept="image/*" id="av" hidden></label>${fl("Ismingiz",`<input class="in" id="nm" value="${E(S.name)}" placeholder="Masalan: Ali">`)}<button class="btn" data-a="psave">Saqlash</button>`)};
 act.psave=()=>{S.name=$("#nm").value.trim()||S.name;S.avatar=AV;save();closeOv();render()};
 act.mem=()=>ov(`<h3>Ma'lumot va xotira</h3><button class="btn" data-a="clr">Keshni tozalash</button>`);
 act.clr=async()=>{try{for(const k of await caches.keys())await caches.delete(k)}catch(e){}toast("Kesh tozalandi")};
@@ -88,7 +90,7 @@ function panel(){ov(`<h3>Admin paneli (${S.lvl}-daraja)</h3><div class="menu"><b
 act.mlist=()=>{if(!need())return;ov(`<h3>Mangalar</h3>${S.manga.map(m=>`<div class="row"><img src="${m.cover}" class="th"><b style="flex:1">${E(m.title)}</b><span><button data-a="medit" data-id="${m.id}">✎</button><button data-a="mdel" data-id="${m.id}">🗑</button></span></div>`).join("")}`)};
 act.medit=d=>{if(need())mform(S.manga.find(m=>m.id==d.id))};
 act.mdel=d=>{if(need()&&confirm("Manga o'chirilsinmi?")){S.manga=S.manga.filter(m=>m.id!=d.id);for(const k in S.saved)S.saved[k]=S.saved[k].filter(i=>i!=d.id);save();ST.pop();act.mlist();render()}};
-act.baza=()=>{if(S.lvl<2||!need())return;ov(`<h3>Baza</h3>${S.baza.map((b,i)=>`<div class="row"><b>Baza ${i+1}</b><span class="mu">${E(b.cloud)}</span><button data-a="bdel" data-i="${i}">🗑</button></div>`).join("")||'<p class="mu">Hali baza yo\'q</p>'}<h4>Yangi baza qo'shish</h4><input class="in" id="b_c" placeholder="Cloudinary cloud name"><input class="in" id="b_p" placeholder="Unsigned upload preset"><button class="btn" data-a="badd">Qo'shish</button>`)};
+act.baza=()=>{if(S.lvl<2||!need())return;ov(`<h3>Baza</h3>${S.baza.map((b,i)=>`<div class="row"><b>Baza ${i+1}</b><span class="mu">${E(b.cloud)}</span><button data-a="bdel" data-i="${i}">🗑</button></div>`).join("")||'<p class="mu">Hali baza yo\'q</p>'}<h4>Yangi baza qo'shish</h4>${fl("Cloud name",`<input class="in" id="b_c" placeholder="Masalan: dxyz12abc">`)}${fl("Upload preset (Unsigned)",`<input class="in" id="b_p" placeholder="Masalan: animanxwa">`)}<button class="btn" data-a="badd">Qo'shish</button>`)};
 act.badd=()=>{const c=$("#b_c").value.trim(),p=$("#b_p").value.trim();if(!c||!p)return toast("Ikkala maydonni to'ldiring");if(!need())return;S.baza.push({cloud:c,preset:p});save();ST.pop();act.baza()};
 act.bdel=d=>{if(S.lvl<2||!need())return;S.baza.splice(+d.i,1);save();ST.pop();act.baza()};
 
@@ -98,16 +100,34 @@ act.mform0=()=>need()&&mform();
 const gchips=()=>[...new Set([...GENRES,...G])].map(g=>chip("gtog",g,G.includes(g))).join("");
 act.gtog=d=>{G=G.includes(d.v)?G.filter(x=>x!=d.v):[...G,d.v];$("#gc").innerHTML=gchips()};
 act.gadd=()=>{const v=$("#gx").value.trim();if(v&&!G.includes(v))G.push(v);$("#gx").value="";$("#gc").innerHTML=gchips()};
-function mform(m){const d=m||{title:"",desc:"",author:"",studio:"",genres:[],tags:[],type:"Manga",status:"Ongoing",pay:"Bepul",vols:0,seasons:0,year:new Date().getFullYear(),cover:""};G=[...d.genres];CV=d.cover;
-ov(`<h3>${m?"Mangani tahrirlash":"Manga qo'shish"}</h3><div id="mf" data-id="${m?m.id:""}"><input class="in" id="f_title" placeholder="Nomi" value="${E(d.title)}"><textarea class="in" id="f_desc" placeholder="Tavsif">${E(d.desc)}</textarea><div class="two"><input class="in" id="f_author" placeholder="Muallif" value="${E(d.author)}"><input class="in" id="f_studio" placeholder="Studiya" value="${E(d.studio)}"></div><div class="two"><input class="in" id="f_year" type="number" placeholder="Yil" value="${d.year}">${sel("f_type",TYPES,d.type)}</div><div class="two">${sel("f_status",["Ongoing","Tugallangan"],d.status)}${sel("f_pay",["Bepul","Obuna"],d.pay)}</div><div class="two"><input class="in" id="f_vols" type="number" min="0" placeholder="Jildlar soni (0 = yo'q)" value="${d.vols}"><input class="in" id="f_seasons" type="number" min="0" placeholder="Fasllar soni (0 = yo'q)" value="${d.seasons}"></div><div class="chips" id="gc">${gchips()}</div><div class="two"><input class="in" id="gx" placeholder="Boshqa janr (qo'lda)"><button class="bt2" data-a="gadd">Qo'shish</button></div><input class="in" id="f_tags" placeholder="Teglar (vergul bilan, ixtiyoriy)" value="${E(d.tags.join(", "))}"><label class="bt2">Muqova rasmi (7:10)<input type="file" accept="image/*" id="f_cover" hidden></label><br><img id="cp" class="pv" src="${CV}"><button class="btn" data-a="msave">${m?"Saqlash":"Manga qo'shish"}</button></div>`)}
+let FV={};
+const TY2=[["Manga","🇯🇵","Yaponiya"],["Manhwa","🇰🇷","Koreya"],["Manhua","🇨🇳","Xitoy"],["Novella","📖","Roman"]].map(x=>[x[0],`<i>${x[1]}</i><b>${x[0]}</b><small>${x[2]}</small>`]);
+const fl=(t,h)=>`<div class="fl"><span class="lb">${t}</span>${h}</div>`;
+const seg=(k,o,c="")=>`<div class="seg ${c}" data-k="${k}">${o.map(x=>`<button type="button" class="${x[0]}${FV[k]==x[0]?" on":""}" data-a="seg" data-k="${k}" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>`;
+act.seg=d=>{FV[d.k]=d.v;document.querySelectorAll(`.seg[data-k="${d.k}"] button`).forEach(b=>b.classList.toggle("on",b.dataset.v==d.v))};
+const vv=x=>x&&x!="-"?E(x):"";
+function mform(m){const d=m||{title:"",desc:"",author:"",studio:"",genres:[],tags:[],type:"Manga",status:"Ongoing",pay:"Bepul",vols:0,seasons:0,year:new Date().getFullYear(),cover:""};G=[...d.genres];CV=d.cover;FV={type:d.type,status:d.status,pay:d.pay};
+ov(`<h3>${m?"Mangani tahrirlash":"Manga qo'shish"}</h3><div id="mf" data-id="${m?m.id:""}">
+${fl("Nomi *",`<input class="in" id="f_title" placeholder="Masalan: Soya ovchisi" value="${vv(d.title)}">`)}
+${fl("Tavsif",`<textarea class="in" id="f_desc" placeholder="Manga haqida qisqacha yozing...">${E(d.desc)}</textarea>`)}
+<div class="two">${fl("Muallif",`<input class="in" id="f_author" placeholder="Masalan: Chugong" value="${vv(d.author)}">`)}${fl("Studiya",`<input class="in" id="f_studio" placeholder="Masalan: Studio Dragon" value="${vv(d.studio)}">`)}</div>
+${fl("Chiqqan yili",`<input class="in" id="f_year" type="number" placeholder="2024" value="${d.year||""}">`)}
+${fl("Turi",seg("type",TY2,"ty"))}
+${fl("Holat",seg("status",[["Ongoing","⏳ Ongoing"],["Tugallangan","✅ Tugallangan"]]))}
+${fl("To'lov",seg("pay",[["Obuna","Obuna"],["Bepul","Bepul"]]))}
+<div class="two">${fl("Jildlar soni (0 = yo'q)",`<input class="in" id="f_vols" type="number" min="0" value="${d.vols}">`)}${fl("Fasllar soni (0 = yo'q)",`<input class="in" id="f_seasons" type="number" min="0" value="${d.seasons}">`)}</div>
+${fl("Janrlar (bir nechtasini tanlang)",`<div class="chips" id="gc">${gchips()}</div><div class="two"><input class="in" id="gx" placeholder="Boshqa janr (o'zingiz yozing)"><button class="bt2" data-a="gadd">Qo'shish</button></div>`)}
+${fl("Teglar (vergul bilan, ixtiyoriy)",`<input class="in" id="f_tags" placeholder="Masalan: qilich, sehr, qasos" value="${E(d.tags.join(", "))}">`)}
+${fl("Muqova rasmi (7:10)",`<label class="bt2">Rasm tanlash<input type="file" accept="image/*" id="f_cover" hidden></label><br><img id="cp" class="pv" src="${CV}" ${CV?"":"hidden"}>`)}
+<button class="btn" data-a="msave">${m?"Saqlash":"Manga qo'shish"}</button></div>`)}
 act.msave=async()=>{if(!need())return;const g=i=>$("#f_"+i).value.trim(),id=$("#mf").dataset.id;if(!g("title"))return toast("Nomini yozing");
 let cv=CV;if(cv.startsWith("data:image/jpeg")&&S.baza.length){try{cv=await up(await(await fetch(cv)).blob())}catch(e){}}
-const d={title:g("title"),desc:g("desc"),author:g("author"),studio:g("studio"),year:+g("year")||0,type:g("type"),status:g("status"),pay:g("pay"),vols:+g("vols")||0,seasons:+g("seasons")||0,genres:G,tags:g("tags").split(",").map(s=>s.trim()).filter(Boolean),cover:cv||art(g("title"),3)};
+const d={title:g("title"),desc:g("desc"),author:g("author"),studio:g("studio"),year:+g("year")||0,type:FV.type,status:FV.status,pay:FV.pay,vols:+g("vols")||0,seasons:+g("seasons")||0,genres:G,tags:g("tags").split(",").map(s=>s.trim()).filter(Boolean),cover:cv||art(g("title"),3)};
 if(id)Object.assign(S.manga.find(m=>m.id==id),d);else S.manga.push({id:Math.max(0,...S.manga.map(m=>m.id))+1,reads:0,chapters:[],...d});
 save();closeOv();render();toast("Saqlandi")};
 async function up(b){let err;for(const z of S.baza){try{const f=new FormData();f.append("file",b);f.append("upload_preset",z.preset);const j=await(await fetch(`https://api.cloudinary.com/v1_1/${z.cloud}/image/upload`,{method:"POST",body:f})).json();if(j.secure_url)return j.secure_url;err=j.error&&j.error.message}catch(e){err=e.message}}throw Error(err||"Baza qo'shilmagan (Admin paneli → Baza)")}
 act.cpick=()=>{if(!need())return;ov(`<h3>Qaysi mangaga BOB qo'shiladi?</h3>${S.manga.map(m=>`<div class="row" data-a="cform" data-id="${m.id}"><img src="${m.cover}" class="th"><b style="flex:1">${E(m.title)}</b>›</div>`).join("")}`)};
-act.cform=d=>{CM=S.manga.find(x=>x.id==d.id);PG=[];ov(`<div class="row"><img src="${CM.cover}" class="th"><b style="flex:1">${E(CM.title)}</b></div><div class="t3"><input class="in" id="c_s" type="number" min="0" placeholder="Fasl"><input class="in" id="c_v" type="number" min="0" placeholder="Jild"><input class="in" id="c_n" type="number" min="0" step="any" placeholder="BOB *"></div><input class="in" id="c_t" placeholder="Sarlavha (ixtiyoriy)"><label class="bt2">Sahifalar: PDF yoki JPG/PNG/WEBP<input type="file" id="c_f" multiple accept=".pdf,image/png,image/jpeg,image/webp" hidden></label><div id="pl"></div><p id="cs" class="mu"></p><button class="btn" data-a="csave">Bobni qo'shish</button>`)};
+act.cform=d=>{CM=S.manga.find(x=>x.id==d.id);PG=[];ov(`<div class="row"><img src="${CM.cover}" class="th"><b style="flex:1">${E(CM.title)}</b></div><div class="t3">${fl("Fasl",`<input class="in" id="c_s" type="number" min="0" placeholder="ixtiyoriy">`)}${fl("Jild",`<input class="in" id="c_v" type="number" min="0" placeholder="ixtiyoriy">`)}${fl("BOB *",`<input class="in" id="c_n" type="number" min="0" step="any" placeholder="Masalan: 1">`)}</div>${fl("Sarlavha (ixtiyoriy)",`<input class="in" id="c_t" placeholder="Masalan: Uyg'onish">`)}${fl("Sahifalar",`<label class="bt2">PDF yoki JPG / PNG / WEBP tanlash<input type="file" id="c_f" multiple accept=".pdf,image/png,image/jpeg,image/webp" hidden></label>`)}<div id="pl"></div><p id="cs" class="mu"></p><button class="btn" data-a="csave">Bobni qo'shish</button>`)};
 function plist(){$("#pl").innerHTML=PG.map((b,i)=>`<div class="row"><img class="th" src="${URL.createObjectURL(b)}"><b style="flex:1">${i+1}-sahifa</b><span><button data-a="pm" data-i="${i}" data-d="-1">↑</button><button data-a="pm" data-i="${i}" data-d="1">↓</button><button data-a="px" data-i="${i}">✕</button></span></div>`).join("")}
 act.pm=d=>{const i=+d.i,j=i+ +d.d;if(j<0||j>=PG.length)return;[PG[i],PG[j]]=[PG[j],PG[i]];plist()};
 act.px=d=>{PG.splice(+d.i,1);plist()};
@@ -119,18 +139,24 @@ CM.chapters.push({id:Date.now(),season:+$("#c_s").value||0,vol:+$("#c_v").value|
 
 /* ---- hodisalar ---- */
 let lt=0;
-document.addEventListener("click",e=>{const b=e.target.closest("#idbox");if(b){const n=Date.now();if(n-lt<400){lt=0;copy(S.uid);b.classList.remove("flash");void b.offsetWidth;b.classList.add("flash")}else lt=n}
+document.addEventListener("click",e=>{const b=e.target.closest("#idbox");if(b){const n=Date.now();if(n-lt<400){lt=0;copy(S.uid,"ID nusxalandi ✓");b.classList.remove("flash");void b.offsetWidth;b.classList.add("flash")}else lt=n}
 const a=e.target.closest("[data-a]");if(a&&act[a.dataset.a])act[a.dataset.a](a.dataset,a)});
 document.addEventListener("input",e=>{if(e.target.id=="qi"){Q=e.target.value;$("#sg").innerHTML=sres().map(card).join("")||'<p class="mu">Hech narsa topilmadi</p>'}});
 document.addEventListener("change",async e=>{const t=e.target;if(!t.files||!t.files[0])return;
-if(t.id=="f_cover"){CV=await toUrl(t.files[0],384,548);$("#cp").src=CV}
+if(t.id=="f_cover"){CV=await toUrl(t.files[0],384,548);$("#cp").src=CV;$("#cp").hidden=false}
 else if(t.id=="av")AV=await toUrl(t.files[0],240,240);
 else if(t.id=="c_f"){for(const f of [...t.files]){if(/pdf/i.test(f.type+f.name))await pdfPages(f);else PG.push(f)}t.value="";plist()}});
 document.addEventListener("contextmenu",e=>{if(!/INPUT|TEXTAREA/.test(e.target.tagName))e.preventDefault()});
 document.addEventListener("dragstart",e=>e.preventDefault());
 
 /* ---- ilova havolasi: animanxwa://manhwa/{id}/{bobId} ---- */
-const dl=u=>{const m=(u||"").match(/manhwa\/(\d+)(?:\/(\d+))?/);if(!m)return;const g=S.manga.find(x=>x.id==m[1]);if(!g)return toast("Manga topilmadi");detail(g.id);if(m[2]&&g.chapters.some(c=>c.id==m[2]))act.read({id:g.id,c:m[2]})};
+const slug=t=>String(t).toLowerCase().replace(/[ʻ'’‘`]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+act.lnk=d=>{const m=S.manga.find(x=>x.id==d.id);copy("animanxwa://"+m.type.toLowerCase()+"/"+(slug(m.title)||m.id),"Havola nusxalandi ✓")};
+const dl=u=>{const p=String(u||"").replace(/^[a-z][\w+.-]*:\/\//i,"").split(/[?#]/)[0].split("/").filter(Boolean).map(x=>decodeURIComponent(x).toLowerCase());
+if(!/^(manga|manhwa|manhua|novella)$/.test(p[0]||"")||!p[1])return;
+const g=S.manga.find(m=>m.type.toLowerCase()==p[0]&&slug(m.title)==p[1])||S.manga.find(m=>slug(m.title)==p[1])||S.manga.find(m=>m.id==p[1]);
+if(!g)return toast("Manga topilmadi");closeOv();detail(g.id);
+const c=p[2]&&(g.chapters.find(c=>c.num==p[2])||g.chapters.find(c=>c.id==p[2]));if(c)act.read({id:g.id,c:c.id})};
 const CA=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
 if(CA){CA.addListener("appUrlOpen",e=>dl(e.url));CA.getLaunchUrl().then(r=>r&&r.url&&dl(r.url)).catch(()=>{})}
 

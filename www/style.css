@@ -80,3 +80,24 @@ textarea.in{min-height:80px}
 .dg{position:fixed;inset:0;z-index:30;display:grid;place-items:center}
 .dp{position:relative;width:86%;max-width:360px;background:var(--sf);border-radius:18px;padding:16px;animation:zin .22s cubic-bezier(.2,.9,.3,1.2)}
 .dp .two button{width:100%;margin:10px 0 0}
+.fl{margin:10px 0 4px}.fl .in{margin:4px 0}
+.lb{display:block;font:600 12.5px system-ui;color:var(--mu);margin-bottom:2px}
+.seg{display:flex;gap:8px;margin:4px 0}
+.seg button{flex:1;padding:11px 6px;border:1.5px solid #2a2a30;border-radius:12px;background:var(--sf);color:#fff;font:600 14px system-ui;transition:.18s}
+.seg button.on{border-color:var(--rd);background:#2a0d12;box-shadow:0 0 0 3px #e11d2e33;transform:scale(1.02)}
+.seg .Obuna.on{background:var(--rd)}.seg .Bepul.on{background:var(--gn);border-color:var(--gn);box-shadow:0 0 0 3px #16a34a44}
+.seg.ty{display:grid;grid-template-columns:1fr 1fr}
+.seg.ty button{display:flex;flex-direction:column;align-items:center;gap:1px}
+.seg.ty i{font-style:normal;font-size:26px}.seg.ty b{font-size:15px}.seg.ty small{color:var(--mu);font-size:11.5px}
+#sp{position:fixed;inset:0;z-index:99;background:#000;display:grid;place-content:center;justify-items:center;gap:22px;animation:spo .45s 2.2s forwards}
+@keyframes spo{to{opacity:0;visibility:hidden}}
+.lg{display:grid;font:900 120px/1 system-ui,sans-serif;animation:lgin .35s cubic-bezier(.2,.9,.3,1.3) both}
+.lg b{grid-area:1/1;font-weight:900}
+.lg .w{color:#fff;z-index:2}
+.lg .r{color:var(--rd);transform:translate(11px,9px);text-shadow:0 0 26px #e11d2e,0 0 60px #e11d2e88;animation:rg 1s ease-in-out infinite alternate}
+@keyframes lgin{from{transform:scale(.4);opacity:0}}
+@keyframes rg{to{text-shadow:0 0 40px #ff2a3d,0 0 90px #e11d2ecc}}
+.nm{font:800 34px/1 system-ui,sans-serif;white-space:nowrap}
+.nm span{display:inline-block;opacity:0;transform:translateY(10px);animation:lt .28s ease-out forwards;animation-delay:calc(.55s + var(--i)*.07s)}
+.nm .a{color:#fff}.nm .m{color:var(--rd);text-shadow:0 0 18px #e11d2e99}
+@keyframes lt{to{opacity:1;transform:none}}
