@@ -1,6 +1,6 @@
 "use strict";
 const $=(s,e=document)=>e.querySelector(s),act={};
-const H1="43ce4e22fdc2538fe7c94f4d61d559d62f7849164bfef97493ab74f05d31fe93",H2="b1343a7a42a7919658db5bd928d9655813636d0e4ccbc9200a479e3ce6921f05",TYPES=["Manga","Manhwa","Manhua","Novella"],
+const H1="43ce4e22fdc2538fe7c94f4d61d559d62f7849164bfef97493ab74f05d31fe93",H2="b1343a7a42a7919658db5bd928d9655813636d0e4ccbc9200a479e3ce6921f05",HC="3358df839d57cbd194b4c7e2ae67b293d2dd8420fdaa811de6bcce5a31cb4539",TYPES=["Manga","Manhwa","Manhua","Novella"],
 GENRES=["Harakat","Ramantika","Fantaziya","Komedia","Horror","Drama","Ilmiy-Fantastika","Sarguzasht","Sirli","Hayotdan parcha","Sport","Psixologik","G'ayratabiiy","O'zga dunyo"];
 const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sha=async t=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,"0")).join("");
@@ -33,7 +33,7 @@ act.back=()=>{ST.pop();showOv()};
 function nav(){const T=[["home","🏠","Asosiy"],["search","🔍","Qidirish"]];if(adminOn())T.push(["add"]);T.push(["saved","❤","Saqlanganlar"],["prof","👤","Profil"]);
 $("#nav").innerHTML=T.map(t=>t[0]=="add"?`<button class="plus" data-a="tab" data-t="add">+</button>`:`<button class="${TAB==t[0]?"on":""}" data-a="tab" data-t="${t[0]}"><i>${t[1]}</i>${t[2]}</button>`).join("")}
 function render(){if(TAB=="add"&&!adminOn())TAB="home";$("#v").innerHTML=({home,search,add,saved,prof})[TAB]();nav()}
-act.tab=d=>{TAB=d.t;render()};
+act.tab=d=>{TAB=d.t;render();const v=$("#v");v.classList.remove("fd");void v.offsetWidth;v.classList.add("fd")};
 function home(){const t=[...S.manga].sort((a,b)=>b.reads-a.reads),bn=[...new Set([...t.slice(0,12),...S.manga.filter(isNew)])].slice(0,20);
 return `<input class="q" placeholder="🔍 Manga qidirish..." readonly data-a="gos"><div class="car" id="car">${bn.map(m=>`<div class="ban" data-a="open" data-id="${m.id}" style="background-image:url('${m.cover}')"><div class="bt">${E(m.title)}</div>${badge(m)}${isNew(m)?'<span class="n">YANGI BOB</span>':""}</div>`).join("")}</div><h3>Eng ko'p o'qilganlar</h3><div class="gr">${t.map(card).join("")}</div>`}
 act.gos=()=>{TAB="search";render();setTimeout(()=>$("#qi")&&$("#qi").focus(),60)};
@@ -41,39 +41,49 @@ const sres=()=>{const q=Q.toLowerCase();return S.manga.filter(m=>(!TY||m.type==T
 const chip=(a,v,on)=>`<span class="ch ${on?"on":""}" data-a="${a}" data-v="${E(v)}">${E(v)}</span>`;
 function search(){return `<input class="q" id="qi" value="${E(Q)}" placeholder="Nom yoki muallif bo'yicha qidiring"><div class="chips">${TYPES.map(t=>chip("ty",t,TY==t)).join("")}</div><div class="chips">${GENRES.map(g=>chip("gn",g,GN==g)).join("")}</div><div class="gr" id="sg">${sres().map(card).join("")||'<p class="mu">Hech narsa topilmadi</p>'}</div>`}
 act.ty=d=>{TY=TY==d.v?"":d.v;render()};act.gn=d=>{GN=GN==d.v?"":d.v;render()};
-function saved(){const k=Object.keys(S.saved);if(!k.length)return '<p class="mu">Hali hech narsa saqlanmagan. Manga ustidagi ♡ ni bosing.</p><button class="bt2" data-a="newf">+ Papka</button>';
-return `<div class="row"><h3>Saqlanganlar</h3><button class="bt2" data-a="newf">+ Papka</button></div>`+k.map(n=>`<div class="row"><b>${E(n)}</b><span><button data-a="renf" data-n="${E(n)}">✎</button><button data-a="delf" data-n="${E(n)}">🗑</button></span></div><div class="gr">${S.saved[n].map(id=>S.manga.find(m=>m.id==id)).filter(Boolean).map(card).join("")||'<p class="mu">Bo\'sh</p>'}</div>`).join("")}
-act.newf=()=>{const n=(prompt("Papka nomi (masalan: Ramantik Manhwalar):")||"").trim();if(n&&!S.saved[n]){S.saved[n]=[];save();render()}};
-act.renf=d=>{const n=(prompt("Yangi nom:",d.n)||"").trim();if(n&&n!=d.n&&!S.saved[n]){const o={};for(const k in S.saved)o[k==d.n?n:k]=S.saved[k];S.saved=o;save();render()}};
-act.delf=d=>{if(confirm("Papka o'chirilsinmi?")){delete S.saved[d.n];save();render()}};
-act.heart=(d,a)=>{const id=+d.id;if(isSaved(id)){for(const k in S.saved)S.saved[k]=S.saved[k].filter(x=>x!=id)}else{(S.saved["Saqlanganlar"]=S.saved["Saqlanganlar"]||[]).push(id);toast("Saqlandi")}save();a.textContent=isSaved(id)?"♥":"♡";if(!ST.length&&TAB=="saved")render()};
-act.folder=d=>{const id=+d.id,ks=Object.keys(S.saved),n=(prompt("Qaysi papkaga? (yangi nom yozsangiz papka yaratiladi)\n"+ks.join(", "),ks[0]||"Saqlanganlar")||"").trim();if(!n)return;for(const k in S.saved)S.saved[k]=S.saved[k].filter(x=>x!=id);(S.saved[n]=S.saved[n]||[]).push(id);save();toast("Papkaga qo'shildi: "+n)};
-
+const cov=k=>{const l=(S.saved[k]||[]).map(i=>S.manga.find(m=>m.id==i)).filter(Boolean).slice(0,4);return `<div class="cv${l.length==1?" c1":""}">${l.map(m=>`<img src="${m.cover}" draggable="false">`).join("")||"<i>♥</i>"}</div>`};
+const copy=async t=>{try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}toast("ID nusxalandi ✓")};
+function burst(el){const r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;for(let i=0;i<8;i++){const s=document.createElement("span"),g=i*.785;s.className="fx";s.textContent="♥";s.style.cssText=`left:${x}px;top:${y}px;--x:${Math.cos(g)*38}px;--y:${Math.sin(g)*38}px`;document.body.appendChild(s);setTimeout(()=>s.remove(),750)}}
+function ask(t,v,cb){const d=document.createElement("div");d.className="dg";d.innerHTML=`<div class="bd"></div><div class="dp"><h4>${t}</h4><input class="in" maxlength="40" placeholder="Playlist nomi" value="${E(v)}"><div class="two"><button class="bt2">Bekor</button><button class="btn">Saqlash</button></div></div>`;document.body.appendChild(d);const i=$("input",d),x=()=>d.remove();setTimeout(()=>i.focus(),50);$(".bd",d).onclick=$(".bt2",d).onclick=x;$(".btn",d).onclick=()=>{const n=i.value.trim();if(n){x();cb(n)}}}
+function sheet(id){let s=$("#sh");if(!s){s=document.createElement("div");s.id="sh";document.body.appendChild(s)}s.hidden=false;
+s.innerHTML=`<div class="bd" data-a="shx" data-id="${id}"></div><div class="sp"><div class="gp"></div><h4>Playlistga saqlash</h4>${Object.keys(S.saved).map(k=>`<div class="pr" data-a="plk" data-id="${id}" data-n="${E(k)}">${cov(k)}<div class="pn"><b>${E(k)}</b><span class="mu">${S.saved[k].length} ta</span></div><span class="ck">${S.saved[k].includes(id)?"✓":""}</span></div>`).join("")}<button class="btn" data-a="plnew" data-id="${id}">+ Yangi playlist</button></div>`}
+function saved(){const k=Object.keys(S.saved);return `<h3>Saqlanganlar</h3><div class="pg">${k.map(n=>`<div class="pl" data-a="plopen" data-n="${E(n)}">${cov(n)}<b>${E(n)}</b><span class="mu">${S.saved[n].length} ta manga</span></div>`).join("")}<div class="pl add" data-a="plnew0"><div class="cv"><i>+</i></div><b>Yangi playlist</b></div></div>${k.length?"":'<p class="mu">Hali hech narsa saqlanmagan. Manga ustidagi ♡ ni bosing.</p>'}`}
+act.heart=(d,a)=>{const id=+d.id;if(!isSaved(id)){const k=Object.keys(S.saved)[0]||"Saqlanganlar";(S.saved[k]=S.saved[k]||[]).push(id);save();a.textContent="♥";a.classList.add("pop");setTimeout(()=>a.classList.remove("pop"),450);burst(a)}sheet(id)};
+act.shx=d=>{const h=$("#sh"),id=+d.id;h.hidden=true;h.innerHTML="";document.querySelectorAll(`.h[data-id="${id}"]`).forEach(b=>{b.textContent=isSaved(id)?"♥":"♡"});if(!ST.length&&TAB=="saved")render()};
+act.plk=d=>{const id=+d.id,l=S.saved[d.n];S.saved[d.n]=l.includes(id)?l.filter(x=>x!=id):[...l,id];save();sheet(id)};
+act.plnew=d=>ask("Yangi playlist","",n=>{if(S.saved[n])return toast("Bunday playlist bor");S.saved[n]=[+d.id];save();sheet(+d.id)});
+act.plnew0=()=>ask("Yangi playlist","",n=>{if(S.saved[n])return toast("Bunday playlist bor");S.saved[n]=[];save();render()});
+act.plopen=d=>{const l=(S.saved[d.n]||[]).map(i=>S.manga.find(m=>m.id==i)).filter(Boolean);ov(`<div class="row"><h2>${E(d.n)}</h2><span><button data-a="plren" data-n="${E(d.n)}">✎</button><button data-a="pldel" data-n="${E(d.n)}">🗑</button></span></div><p class="mu">${l.length} ta manga</p><div class="gr">${l.map(card).join("")||'<p class="mu">Bo\'sh</p>'}</div>`)};
+act.plren=d=>ask("Playlist nomini o'zgartirish",d.n,n=>{if(n==d.n)return;if(S.saved[n])return toast("Bunday playlist bor");const o={};for(const k in S.saved)o[k==d.n?n:k]=S.saved[k];S.saved=o;save();ST.pop();render();act.plopen({n})});
+act.pldel=d=>{if(confirm("Playlist o'chirilsinmi?")){delete S.saved[d.n];save();ST.pop();render()}};
 /* ---- manga sahifasi va o'qish ---- */
 function detail(id){const m=S.manga.find(x=>x.id==id);if(!m)return;const cs=[...m.chapters].sort((a,b)=>b.num-a.num);
-ov(`<div class="dh"><img src="${m.cover}" draggable="false"><div><h2>${E(m.title)}</h2>${badge(m).replace("b ","b st ")} ${isNew(m)?'<span class="n">YANGI BOB</span>':""}<p class="mu">${m.type} · ${m.status}<br>${E(m.author)} · ${E(m.studio)} · ${m.year}</p>${heart(m)} <button class="bt2" data-a="folder" data-id="${m.id}">Papkaga</button></div></div><p>${E(m.desc)}</p><div class="chips">${m.genres.concat(m.tags).map(g=>`<span class="ch">${E(g)}</span>`).join("")}</div><h4>Boblar</h4>${cs.map(c=>`<button class="cb" data-a="read" data-id="${m.id}" data-c="${c.id}">${cl(c)}</button>`).join("")||'<p class="mu">Hali bob yo\'q</p>'}`)}
+ov(`<div class="dh"><img src="${m.cover}" draggable="false"><div><h2>${E(m.title)}</h2>${badge(m).replace("b ","b st ")} ${isNew(m)?'<span class="n">YANGI BOB</span>':""}<p class="mu">${m.type} · ${m.status}<br>${E(m.author)} · ${E(m.studio)} · ${m.year}</p>${heart(m)}</div></div><p>${E(m.desc)}</p><div class="chips">${m.genres.concat(m.tags).map(g=>`<span class="ch">${E(g)}</span>`).join("")}</div><h4>Boblar</h4>${cs.map(c=>`<button class="cb" data-a="read" data-id="${m.id}" data-c="${c.id}">${cl(c)}</button>`).join("")||'<p class="mu">Hali bob yo\'q</p>'}`)}
 act.open=d=>detail(d.id);
 act.read=d=>{const m=S.manga.find(x=>x.id==d.id),cs=[...m.chapters].sort((a,b)=>a.num-b.num),i=cs.findIndex(x=>x.id==d.c),c=cs[i];if(!c)return;if(d.rep)ST.pop();m.reads++;if(!S.read.includes(m.id))S.read.push(m.id);save();
 const nb=(x,t)=>x?`<button class="btn" data-a="read" data-rep="1" data-id="${m.id}" data-c="${x.id}">${t}</button>`:"";
 ov(`<h4>${E(m.title)} · ${cl(c)}</h4><div class="pgs">${c.pages.map(p=>`<img src="${p}" draggable="false">`).join("")}</div><div class="rn">${nb(cs[i-1],"‹ Oldingi")}${nb(cs[i+1],"Keyingi ›")}</div>`)};
 
 /* ---- profil ---- */
-function prof(){return `<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2></div><div class="menu">${[["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["soon","Bildirishnoma"],["soon","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft">ID: <b>${S.uid}</b><br>Hisob: ${S.bal} so'm</div>`}
+function prof(){return `<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2></div><div class="menu">${[["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["soon","Bildirishnoma"],["soon","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft" id="idbox">ID: <b>${S.uid.replace(/(\d{4})(?=\d)/g,"$1 ")}</b><br><span class="mu">Nusxalash uchun ikki marta bosing</span><br>Hisob: ${S.bal} so'm</div>`}
 act.soon=()=>toast("Tez orada");
 act.edit=()=>{AV=S.avatar;ov(`<h3>Profilni tahrirlash</h3><label class="bt2">Rasm tanlash<input type="file" accept="image/*" id="av" hidden></label><input class="in" id="nm" value="${E(S.name)}" placeholder="Ismingiz"><button class="btn" data-a="psave">Saqlash</button>`)};
 act.psave=()=>{S.name=$("#nm").value.trim()||S.name;S.avatar=AV;save();closeOv();render()};
 act.mem=()=>ov(`<h3>Ma'lumot va xotira</h3><button class="btn" data-a="clr">Keshni tozalash</button>`);
 act.clr=async()=>{try{for(const k of await caches.keys())await caches.delete(k)}catch(e){}toast("Kesh tozalandi")};
 act.idc=()=>ov(`<h3>ID ma'lumotingiz</h3><input class="in" id="idi" placeholder="ID raqamingizni kiriting" inputmode="numeric"><button class="btn" data-a="idgo">Tekshirish</button><div id="idr"></div>`);
-act.idgo=async()=>{const v=$("#idi").value.trim(),r=$("#idr");
-if(await sha(v)==H2){if(!S.admins.includes(S.uid))S.admins.push(S.uid);S.ok=Date.now();S.lvl=0;save();nav();return r.innerHTML='<p class="ok">Admin sifatida tasdiqlandi.</p>'}
-if(v==S.uid){if(S.admins.includes(S.uid)){S.ok=Date.now();S.lvl=0;save();nav();return r.innerHTML='<p class="ok">Admin tasdiqlandi. «+» va Admin paneli ochildi.</p>'}
-const L=S.read.map(id=>(S.manga.find(m=>m.id==id)||{}).title).filter(Boolean);return r.innerHTML=`<p>Siz ${L.length} ta manga o'qigansiz.</p>${L.map(t=>`<div class="ch">${E(t)}</div>`).join("")}`}
+act.idgo=async()=>{const v=$("#idi").value.replace(/\s/g,""),r=$("#idr");
+if(await sha(v)==HC){ST.pop();return gate()}
+if(v==S.uid){const L=S.read.map(id=>(S.manga.find(m=>m.id==id)||{}).title).filter(Boolean);return r.innerHTML=`<p>Siz ${L.length} ta manga o'qigansiz.</p>${L.map(t=>`<div class="ch">${E(t)}</div>`).join("")}`}
 r.innerHTML=/^\d{15,30}$/.test(v)?'<p class="er">🚫 Ushbu ID raqam sizga tegishli emas</p>':'<p class="er">ID raqamingizni to\'g\'ri kiriting</p>'};
 
 /* ---- admin paneli ---- */
-act.adm=()=>{if(!adminOn())return toast("Kirish mumkin emas, siz admin emassiz");if(S.lvl)return panel();ov(`<h3>Admin paneli</h3><input class="in" id="pw" type="password" placeholder="Parol"><button class="btn" data-a="pwgo">Kirish</button><div id="pr"></div>`)};
-act.pwgo=async()=>{if(!need())return;const h=await sha($("#pw").value);S.lvl=h==H2?2:h==H1?1:0;save();if(!S.lvl)return $("#pr").innerHTML='<p class="er">Parol noto\'g\'ri</p>';ST.pop();panel()};
+function gate(){ov(`<h3>Admin kirish</h3><input class="in" id="pw" type="password" placeholder="Parol" autocomplete="off"><button class="btn" data-a="pwgo">Kirish</button><div id="pr"></div>`)}
+act.adm=()=>{if(!adminOn())return toast("Kirish mumkin emas, siz admin emassiz");S.lvl?panel():gate()};
+act.pwgo=async()=>{const r=$("#pr");if(Date.now()<(S.lock||0))return r.innerHTML='<p class="er">Juda ko\'p urinish. 10 daqiqadan keyin qayta urining.</p>';
+const h=await sha($("#pw").value),L=h==H2?2:h==H1?1:0;
+if(!L){S.fail=(S.fail||0)+1;if(S.fail>=5){S.lock=Date.now()+6e5;S.fail=0}save();return r.innerHTML='<p class="er">Kirish mumkin emas: parol noto\'g\'ri</p>'}
+S.fail=0;if(!S.admins.includes(S.uid))S.admins.push(S.uid);S.ok=Date.now();S.lvl=L;save();ST.pop();render();panel()};
 function panel(){ov(`<h3>Admin paneli (${S.lvl}-daraja)</h3><div class="menu"><button data-a="mlist">Mangalarni tahrirlash</button>${S.lvl==2?'<button data-a="baza">Baza</button>':""}</div><p class="mu">4 soat faol bo'lmasangiz panel avtomatik yopiladi.</p>`)}
 act.mlist=()=>{if(!need())return;ov(`<h3>Mangalar</h3>${S.manga.map(m=>`<div class="row"><img src="${m.cover}" class="th"><b style="flex:1">${E(m.title)}</b><span><button data-a="medit" data-id="${m.id}">✎</button><button data-a="mdel" data-id="${m.id}">🗑</button></span></div>`).join("")}`)};
 act.medit=d=>{if(need())mform(S.manga.find(m=>m.id==d.id))};
@@ -108,7 +118,9 @@ try{for(let i=0;i<PG.length;i++){$("#cs").textContent=`Yuklanmoqda ${i+1}/${PG.l
 CM.chapters.push({id:Date.now(),season:+$("#c_s").value||0,vol:+$("#c_v").value||0,num:+n,title:$("#c_t").value.trim(),at:Date.now(),pages:urls});save();closeOv();render();toast("BOB qo'shildi")};
 
 /* ---- hodisalar ---- */
-document.addEventListener("click",e=>{const a=e.target.closest("[data-a]");if(a&&act[a.dataset.a])act[a.dataset.a](a.dataset,a)});
+let lt=0;
+document.addEventListener("click",e=>{const b=e.target.closest("#idbox");if(b){const n=Date.now();if(n-lt<400){lt=0;copy(S.uid);b.classList.remove("flash");void b.offsetWidth;b.classList.add("flash")}else lt=n}
+const a=e.target.closest("[data-a]");if(a&&act[a.dataset.a])act[a.dataset.a](a.dataset,a)});
 document.addEventListener("input",e=>{if(e.target.id=="qi"){Q=e.target.value;$("#sg").innerHTML=sres().map(card).join("")||'<p class="mu">Hech narsa topilmadi</p>'}});
 document.addEventListener("change",async e=>{const t=e.target;if(!t.files||!t.files[0])return;
 if(t.id=="f_cover"){CV=await toUrl(t.files[0],384,548);$("#cp").src=CV}

@@ -52,3 +52,31 @@ textarea.in{min-height:80px}
 .rn{display:flex;gap:8px}
 #ts{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#fff;color:#000;padding:10px 16px;border-radius:99px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:9}#ts.on{opacity:1}
 .b.st{position:static;display:inline-block;margin-right:6px}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+@keyframes fd{from{opacity:0}}
+@keyframes up{from{transform:translateY(100%)}}
+@keyframes zin{from{transform:scale(.85);opacity:0}}
+@keyframes pop{40%{transform:scale(1.5)}}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) scale(.3);opacity:0}}
+@keyframes fl{from{box-shadow:0 0 0 0 #e11d2e;background:#3a1015}}
+#v.fd{animation:in .28s}
+#nav i{transition:transform .2s}#nav .on i{transform:translateY(-2px) scale(1.18)}
+.btn:active,.menu button:active,.pl:active,.p:active,.pr:active{transform:scale(.97)}
+.h.pop{animation:pop .4s}
+.fx{position:fixed;pointer-events:none;z-index:40;color:var(--rd);font-size:15px;animation:fly .7s ease-out forwards}
+.flash{animation:fl .7s}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pl b{display:block;margin-top:6px}.pl span{font-size:12.5px}
+.cv{aspect-ratio:1;border-radius:14px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;background:var(--sf)}
+.cv.c1{grid-template-columns:1fr}.cv img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.cv i{grid-column:1/-1;display:grid;place-items:center;font-style:normal;font-size:30px;color:var(--rd)}
+.pl.add .cv{border:2px dashed #3a3a42;background:none}.pl.add i{color:var(--mu)}
+#sh{position:fixed;inset:0;z-index:10}
+#sh .bd,.dg .bd{position:absolute;inset:0;background:#000b;animation:fd .2s}
+.sp{position:absolute;left:0;right:0;bottom:0;max-height:75%;overflow-y:auto;background:var(--sf);border-radius:22px 22px 0 0;padding:10px 14px 16px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+.gp{width:40px;height:4px;border-radius:2px;background:#444;margin:0 auto 10px}
+.pr{display:flex;align-items:center;gap:12px;padding:8px 0}.pr .cv{width:54px;flex:none;border-radius:10px}
+.pn{flex:1}.pn b{display:block}.ck{color:var(--rd);font-size:22px;width:26px;text-align:center}
+.dg{position:fixed;inset:0;z-index:30;display:grid;place-items:center}
+.dp{position:relative;width:86%;max-width:360px;background:var(--sf);border-radius:18px;padding:16px;animation:zin .22s cubic-bezier(.2,.9,.3,1.2)}
+.dp .two button{width:100%;margin:10px 0 0}
