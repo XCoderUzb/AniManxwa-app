@@ -64,7 +64,7 @@ ov(`<div class="dh"><img src="${m.cover}" draggable="false"><div><h2>${E(m.title
 act.open=d=>detail(d.id);
 act.read=d=>{const m=S.manga.find(x=>x.id==d.id),cs=[...m.chapters].sort((a,b)=>a.num-b.num),i=cs.findIndex(x=>x.id==d.c),c=cs[i];if(!c)return;if(d.rep)ST.pop();m.reads++;if(!S.read.includes(m.id))S.read.push(m.id);save();
 const nb=(x,t)=>x?`<button class="btn" data-a="read" data-rep="1" data-id="${m.id}" data-c="${x.id}">${t}</button>`:"";
-ov(`<h4>${E(m.title)} · ${cl(c)}</h4><div class="pgs">${c.pages.map(p=>`<img src="${p}" draggable="false">`).join("")}</div><div class="rn">${nb(cs[i-1],"‹ Oldingi")}${nb(cs[i+1],"Keyingi ›")}</div>`)};
+ov(`<h4>${E(m.title)} · ${cl(c)}</h4><div class="pgs">${c.pages.map(p=>{const u=p.u||p;return `<img src="${u}" draggable="false" decoding="async"${p.w?` loading="lazy" style="aspect-ratio:${p.w}/${p.h}"`:""}>`}).join("")}</div><div class="rn">${nb(cs[i-1],"‹ Oldingi")}${nb(cs[i+1],"Keyingi ›")}</div>`)};
 
 /* ---- profil ---- */
 function prof(){return `<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2></div><div class="menu">${[["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["soon","Bildirishnoma"],["soon","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft" id="idbox">ID: <b>${S.uid.replace(/(\d{4})(?=\d)/g,"$1 ")}</b><br><span class="mu">Nusxalash uchun ikki marta bosing</span><br>Hisob: ${S.bal} so'm</div>`}
@@ -128,14 +128,27 @@ save();closeOv();render();toast("Saqlandi")};
 async function up(b){let err;for(const z of S.baza){try{const f=new FormData();f.append("file",b);f.append("upload_preset",z.preset);const j=await(await fetch(`https://api.cloudinary.com/v1_1/${z.cloud}/image/upload`,{method:"POST",body:f})).json();if(j.secure_url)return j.secure_url;err=j.error&&j.error.message}catch(e){err=e.message}}throw Error(err||"Baza qo'shilmagan (Admin paneli → Baza)")}
 act.cpick=()=>{if(!need())return;ov(`<h3>Qaysi mangaga BOB qo'shiladi?</h3>${S.manga.map(m=>`<div class="row" data-a="cform" data-id="${m.id}"><img src="${m.cover}" class="th"><b style="flex:1">${E(m.title)}</b>›</div>`).join("")}`)};
 act.cform=d=>{CM=S.manga.find(x=>x.id==d.id);PG=[];ov(`<div class="row"><img src="${CM.cover}" class="th"><b style="flex:1">${E(CM.title)}</b></div><div class="t3">${fl("Fasl",`<input class="in" id="c_s" type="number" min="0" placeholder="ixtiyoriy">`)}${fl("Jild",`<input class="in" id="c_v" type="number" min="0" placeholder="ixtiyoriy">`)}${fl("BOB *",`<input class="in" id="c_n" type="number" min="0" step="any" placeholder="Masalan: 1">`)}</div>${fl("Sarlavha (ixtiyoriy)",`<input class="in" id="c_t" placeholder="Masalan: Uyg'onish">`)}${fl("Sahifalar",`<label class="bt2">PDF yoki JPG / PNG / WEBP tanlash<input type="file" id="c_f" multiple accept=".pdf,image/png,image/jpeg,image/webp" hidden></label>`)}<div id="pl"></div><p id="cs" class="mu"></p><button class="btn" data-a="csave">Bobni qo'shish</button>`)};
-function plist(){$("#pl").innerHTML=PG.map((b,i)=>`<div class="row"><img class="th" src="${URL.createObjectURL(b)}"><b style="flex:1">${i+1}-sahifa</b><span><button data-a="pm" data-i="${i}" data-d="-1">↑</button><button data-a="pm" data-i="${i}" data-d="1">↓</button><button data-a="px" data-i="${i}">✕</button></span></div>`).join("")}
+function plist(){$("#pl").innerHTML=PG.map((b,i)=>`<div class="row"><img class="th" loading="lazy" decoding="async" src="${URL.createObjectURL(b)}"><b style="flex:1">${i+1}-bo'lak <span class="mu">${Math.round(b.size/1024)} KB</span></b><span><button data-a="pm" data-i="${i}" data-d="-1">↑</button><button data-a="pm" data-i="${i}" data-d="1">↓</button><button data-a="px" data-i="${i}">✕</button></span></div>`).join("");$("#cs").textContent=PG.length?`${PG.length} ta bo'lak · jami ${(PG.reduce((a,b)=>a+b.size,0)/1048576).toFixed(1)} MB`:""}
 act.pm=d=>{const i=+d.i,j=i+ +d.d;if(j<0||j>=PG.length)return;[PG[i],PG[j]]=[PG[j],PG[i]];plist()};
 act.px=d=>{PG.splice(+d.i,1);plist()};
+const MAXW=1080,CUT=1800;
+const dim=f=>new Promise(r=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{URL.revokeObjectURL(u);r([i.naturalWidth,i.naturalHeight])};i.onerror=()=>r([0,0]);i.src=u});
+function cutAt(s,y,e){const h=Math.min(240,e-y-500);if(h<=0)return e;const c=document.createElement("canvas");c.width=s.width;c.height=h;const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(s,0,e-h,s.width,h,0,0,s.width,h);const d=x.getImageData(0,0,s.width,h).data;
+for(let r=h-1;r>=0;r--){let lo=255,hi=0;for(let i=0;i<s.width;i+=6){const k=(r*s.width+i)*4,l=(d[k]+d[k+1]+d[k+2])/3;if(l<lo)lo=l;if(l>hi)hi=l}if(hi-lo<6)return e-h+r+1}return e}
+async function enc(s,y,h){const c=document.createElement("canvas");c.width=s.width;c.height=h;c.getContext("2d").drawImage(s,0,y,s.width,h,0,0,s.width,h);let b;
+for(const q of [.82,.7,.55]){b=await new Promise(r=>c.toBlob(r,"image/webp",q));if(!b||b.type!="image/webp"){b=null;break}if(b.size<7e5)break}
+if(!b)b=await new Promise(r=>c.toBlob(r,"image/jpeg",.8));b.w=s.width;b.h=h;c.width=c.height=0;return b}
+async function pack(s){const o=[];let y=0;while(y<s.height){let e=Math.min(s.height,y+CUT);if(e<s.height)e=cutAt(s,y,e);o.push(await enc(s,y,e-y));y=e}return o}
+async function addImg(f){const[w]=await dim(f);if(!w)throw Error("rasm emas");let b;try{b=await createImageBitmap(f,w>MAXW?{resizeWidth:MAXW,resizeQuality:"high"}:{})}catch(e){b=await createImageBitmap(f)}
+for(const x of await pack(b))PG.push(x);b.close&&b.close()}
 async function pdfPages(f){if(!window.pdfjsLib)return toast("PDF kutubxonasi yuklanmadi (internetni tekshiring)");pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;for(let i=1;i<=pdf.numPages;i++){$("#cs").textContent=`PDF o'qilmoqda: ${i}/${pdf.numPages}`;const p=await pdf.getPage(i),v=p.getViewport({scale:1.6}),c=document.createElement("canvas");c.width=v.width;c.height=v.height;await p.render({canvasContext:c.getContext("2d"),viewport:v}).promise;PG.push(await new Promise(r=>c.toBlob(r,"image/png")))}$("#cs").textContent=""}
+const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+for(let i=1;i<=pdf.numPages;i++){$("#cs").textContent=`PDF: ${i}/${pdf.numPages} sahifa tayyorlanmoqda...`;const p=await pdf.getPage(i),v0=p.getViewport({scale:1}),v=p.getViewport({scale:Math.min(3,MAXW/v0.width)}),c=document.createElement("canvas");c.width=Math.round(v.width);c.height=Math.round(v.height);const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);await p.render({canvasContext:g,viewport:v}).promise;for(const x of await pack(c))PG.push(x);c.width=c.height=0;p.cleanup()}
+await pdf.destroy()}
 act.csave=async()=>{if(!need())return;const n=$("#c_n").value;if(n==="")return toast("BOB raqami majburiy");if(!PG.length)return toast("Sahifalarni tanlang");const urls=[];
-try{for(let i=0;i<PG.length;i++){$("#cs").textContent=`Yuklanmoqda ${i+1}/${PG.length}...`;urls.push(await up(PG[i]))}}catch(e){return $("#cs").textContent="Xato: "+e.message}
-CM.chapters.push({id:Date.now(),season:+$("#c_s").value||0,vol:+$("#c_v").value||0,num:+n,title:$("#c_t").value.trim(),at:Date.now(),pages:urls});save();closeOv();render();toast("BOB qo'shildi")};
+let k=0,done=0,fail=null;const w=async()=>{while(k<PG.length&&!fail){const i=k++;try{let u,er;for(let t=0;t<3&&!u;t++){try{u=await up(PG[i])}catch(e){er=e}}if(!u)throw er;urls[i]=u;$("#cs").textContent=`Yuklanmoqda ${++done}/${PG.length}...`}catch(e){fail=e}}};
+await Promise.all([w(),w(),w()]);if(fail)return $("#cs").textContent="Xato: "+fail.message;
+CM.chapters.push({id:Date.now(),season:+$("#c_s").value||0,vol:+$("#c_v").value||0,num:+n,title:$("#c_t").value.trim(),at:Date.now(),pages:urls.map((u,i)=>({u,w:PG[i].w,h:PG[i].h}))});save();closeOv();render();toast("BOB qo'shildi")};
 
 /* ---- hodisalar ---- */
 let lt=0;
@@ -143,9 +156,9 @@ document.addEventListener("click",e=>{const b=e.target.closest("#idbox");if(b){c
 const a=e.target.closest("[data-a]");if(a&&act[a.dataset.a])act[a.dataset.a](a.dataset,a)});
 document.addEventListener("input",e=>{if(e.target.id=="qi"){Q=e.target.value;$("#sg").innerHTML=sres().map(card).join("")||'<p class="mu">Hech narsa topilmadi</p>'}});
 document.addEventListener("change",async e=>{const t=e.target;if(!t.files||!t.files[0])return;
-if(t.id=="f_cover"){CV=await toUrl(t.files[0],384,548);$("#cp").src=CV;$("#cp").hidden=false}
+if(t.id=="f_cover"){CV=await toUrl(t.files[0],720,1028);$("#cp").src=CV;$("#cp").hidden=false}
 else if(t.id=="av")AV=await toUrl(t.files[0],240,240);
-else if(t.id=="c_f"){for(const f of [...t.files]){if(/pdf/i.test(f.type+f.name))await pdfPages(f);else PG.push(f)}t.value="";plist()}});
+else if(t.id=="c_f"){const L=[...t.files];t.value="";for(let i=0;i<L.length;i++){const f=L[i];$("#cs").textContent=`Tayyorlanmoqda: fayl ${i+1}/${L.length}...`;try{if(/pdf/i.test(f.type+f.name))await pdfPages(f);else await addImg(f)}catch(e){toast("Faylni o'qib bo'lmadi: "+f.name)}plist()}}});
 document.addEventListener("contextmenu",e=>{if(!/INPUT|TEXTAREA/.test(e.target.tagName))e.preventDefault()});
 document.addEventListener("dragstart",e=>e.preventDefault());
 
