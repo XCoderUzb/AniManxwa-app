@@ -67,7 +67,7 @@ const nb=(x,t)=>x?`<button class="btn" data-a="read" data-rep="1" data-id="${m.i
 ov(`<h4>${E(m.title)} · ${cl(c)}</h4><div class="pgs">${c.pages.map(p=>{const u=p.u||p;return `<img src="${u}" draggable="false" decoding="async"${p.w?` loading="lazy" style="aspect-ratio:${p.w}/${p.h}"`:""}>`}).join("")}</div><div class="rn">${nb(cs[i-1],"‹ Oldingi")}${nb(cs[i+1],"Keyingi ›")}</div>`)};
 
 /* ---- profil ---- */
-function prof(){return `<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2></div><div class="menu">${[["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["soon","Bildirishnoma"],["soon","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft" id="idbox">ID: <b>${S.uid.replace(/(\d{4})(?=\d)/g,"$1 ")}</b><br><span class="mu">Nusxalash uchun ikki marta bosing</span><br>Hisob: ${S.bal} so'm</div>`}
+function prof(){return `<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2></div><div class="menu">${[["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["soon","Bildirishnoma"],["soon","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft" id="idbox">ID: <b>${S.uid.replace(/(\d{4})(?=\d)/g,"$1 ")}</b><br><span class="mu">Nusxalash uchun ikki marta bosing</span><br>Hisob: ${S.bal} so'm<br><span class="mu">Versiya: ${VER||"-"}</span></div>`}
 act.soon=()=>toast("Tez orada");
 act.edit=()=>{AV=S.avatar;ov(`<h3>Profilni tahrirlash</h3><label class="bt2">Rasm tanlash<input type="file" accept="image/*" id="av" hidden></label>${fl("Ismingiz",`<input class="in" id="nm" value="${E(S.name)}" placeholder="Masalan: Ali">`)}<button class="btn" data-a="psave">Saqlash</button>`)};
 act.psave=()=>{S.name=$("#nm").value.trim()||S.name;S.avatar=AV;save();closeOv();render()};
@@ -176,7 +176,8 @@ const g=S.manga.find(m=>m.type.toLowerCase()==p[0]&&slug(m.title)==p[1])||S.mang
 if(!g)return toast("Manga topilmadi");closeOv();detail(g.id);
 const c=p[2]&&(g.chapters.find(c=>c.num==p[2])||g.chapters.find(c=>c.id==p[2]));if(c)act.read({id:g.id,c:c.id})};
 const CA=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
-if(CA){CA.addListener("appUrlOpen",e=>dl(e.url));CA.getLaunchUrl().then(r=>r&&r.url&&dl(r.url)).catch(()=>{})}
+let VER="";
+if(CA){CA.addListener("appUrlOpen",e=>dl(e.url));CA.getLaunchUrl().then(r=>r&&r.url&&dl(r.url)).catch(()=>{});CA.getInfo().then(i=>{VER=i.version+" ("+i.build+")";if(TAB=="prof"&&!ST.length)render()}).catch(()=>{})}
 
 if(S.ok&&!adminOn()){S.ok=0;S.lvl=0;save()}
 setInterval(()=>{if(S.ok&&!adminOn()){S.ok=0;S.lvl=0;save();if(!ST.length)render()}},6e4);
