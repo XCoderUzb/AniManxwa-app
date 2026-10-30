@@ -40,3 +40,11 @@ try:
     print(subprocess.run(['keytool', '-list', '-keystore', 'android/app/ax.keystore', '-storepass', 'android'], capture_output=True, text=True).stdout)
 except Exception as e:
     print('keytool topilmadi', e)
+
+# server manzili (api.txt) ilovaga joylanadi; server rejimida parol xeshlari APK ichidan olib tashlanadi
+api = open('api.txt', encoding='utf-8').read().strip() if os.path.exists('api.txt') else ''
+for f in glob.glob('android/app/src/main/assets/public/app.js'):
+    a = open(f, encoding='utf-8').read().replace('__API__', api)
+    if api: a = re.sub(r'H1="[0-9a-f]{64}",H2="[0-9a-f]{64}"', 'H1="",H2=""', a)
+    open(f, 'w', encoding='utf-8').write(a)
+print('Server manzili:', api or "(bosh: lokal rejim)")
