@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths-ignore:
+      - "desktop/**"
+      - ".github/workflows/desktop.yml"
+      - "README.md"
 jobs:
   apk:
     runs-on: ubuntu-latest
