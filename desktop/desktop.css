@@ -1,0 +1,61 @@
+/* AniManxwa - kompyuter uchun qo'shimcha uslublar. style.css (mobil bilan umumiy) DAN KEYIN yuklanadi.
+   900px dan tor oynada mobil ko'rinish o'zgarishsiz qoladi. */
+*{scrollbar-width:thin;scrollbar-color:#2e2e34 transparent}
+[data-a],.bk,label.bt2{cursor:pointer}
+@media print{html{display:none}}
+
+@media (min-width:900px){
+:root{--sw:232px}
+body{flex-direction:row}
+
+/* chap yon menyu (pastdagi menyu o'rniga) */
+#nav{order:-1;flex:none;width:var(--sw);height:100%;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;padding:18px 12px;border-top:0;border-right:1px solid #26262b;overflow-y:auto}
+#nav:before{content:"AniManxwa";display:block;padding:4px 14px 18px;font:900 22px system-ui;color:var(--rd)}
+#nav button{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;padding:11px 14px;border-radius:12px;font:600 15px system-ui;transition:background .15s,color .15s}
+#nav button:hover{background:var(--sf);color:#fff}
+#nav .on{background:#1d0a0e;color:var(--rd)}
+#nav i{width:26px;text-align:center;font-size:19px}
+#nav .on i{transform:none}
+#nav .plus{width:auto;height:auto;margin:8px 0;border-radius:12px;transform:none;box-shadow:none;background:var(--rd);color:#fff;font-size:24px;line-height:1;padding:11px 14px}
+#nav .plus:hover{background:#c8101f;color:#fff}
+#nav .plus:after{content:"Qo'shish";font:700 15px system-ui}
+
+/* asosiy oyna */
+#v{padding:26px 36px 48px}
+#v>*{max-width:1280px;margin-left:auto;margin-right:auto}
+#v>.pf,#v>.menu,#v>.ft{max-width:620px}
+.gr{grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:20px 18px}
+.pg{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px 18px}
+.p{transition:transform .18s,box-shadow .18s}
+.p:hover{transform:translateY(-4px);box-shadow:0 12px 26px #000a}
+.t{font-size:14px}
+.ban{flex:0 0 calc((100% - 10px)/2);aspect-ratio:16/10;cursor:pointer}
+.menu button:hover,.cb:hover,.pr:hover{background:#202025}
+.pl{cursor:pointer}
+
+/* ochiladigan sahifalar (manga, o'qish, admin...) yon menyuni yopmaydi */
+#o{left:var(--sw)}
+#o:has(.rdc){left:0}
+.ob{padding:12px 28px}
+.oc{max-width:1000px;margin:0 auto;padding:14px 32px 56px}
+.oc.rdc{max-width:none;padding:0}
+.dh{gap:28px}
+.dh>img{width:260px;max-width:42%}
+.dh h2{font-size:26px;margin-top:0}
+#cl{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:8px}
+#cl .cb{margin:0}
+
+/* o'qish */
+.oc.rdc .pgs:not(.hz){max-width:880px;margin:0 auto}
+.rb{padding:10px 22px}
+.rf{padding:8px 24px}
+
+/* pastdan chiqadigan oynalar -> markazda */
+#sh .sp{left:0;right:0;margin:0 auto;max-width:520px;bottom:40px;border-radius:22px;max-height:70%}
+.dp{max-width:420px}
+#ts{bottom:36px}
+}
+
+@media (min-width:1150px){
+.ban{flex:0 0 calc((100% - 20px)/3);aspect-ratio:16/10}
+}
