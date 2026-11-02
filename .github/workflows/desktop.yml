@@ -8,6 +8,8 @@ on:
       - "capacitor.config.json"
       - "package.json"
       - ".github/workflows/apk.yml"
+      - "electron/**"
+      - ".github/workflows/exe.yml"
       - "README.md"
 permissions:
   contents: read

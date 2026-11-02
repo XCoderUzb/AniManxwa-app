@@ -6,6 +6,8 @@ on:
     paths-ignore:
       - "desktop/**"
       - ".github/workflows/desktop.yml"
+      - "electron/**"
+      - ".github/workflows/exe.yml"
       - "README.md"
 jobs:
   apk:
