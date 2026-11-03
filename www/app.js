@@ -34,7 +34,7 @@ const sel=(id,a,v)=>`<select class="in" id="${id}">${a.map(o=>`<option ${o==v?"s
 const toUrl=(f,w,h,crop)=>new Promise(r=>{const i=new Image();i.onload=()=>{const c=document.createElement("canvas");if(crop){const k=Math.max(w/i.width,h/i.height),sw=w/k,sh=h/k;c.width=w;c.height=h;c.getContext("2d").drawImage(i,(i.width-sw)/2,(i.height-sh)/2,sw,sh,0,0,w,h)}else{const k=Math.min(1,w/i.width,h/i.height);c.width=i.width*k;c.height=i.height*k;c.getContext("2d").drawImage(i,0,0,c.width,c.height)}r(c.toDataURL("image/jpeg",.85))};i.src=URL.createObjectURL(f)});
 
 /* ---- oynalar (overlay) ---- */
-function showOv(){const o=$("#o"),t=ST[ST.length-1]||"";o.hidden=!ST.length;o.innerHTML=!ST.length?"":t.startsWith("<!--rd-->")?'<div class="oc rdc">'+t+'</div>':'<div class="ob"><button class="bk" data-a="back">‹ Orqaga</button></div><div class="oc">'+t+'</div>'}
+function showOv(){const o=$("#o"),t=ST[ST.length-1]||"";applyShield(t.startsWith("<!--rd-->"));o.hidden=!ST.length;o.innerHTML=!ST.length?"":t.startsWith("<!--rd-->")?'<div class="oc rdc">'+t+'</div>':'<div class="ob"><button class="bk" data-a="back">‹ Orqaga</button></div><div class="oc">'+t+'</div>'}
 const ov=h=>{ST.push(h);showOv()},closeOv=()=>{ST=[];showOv()};
 act.back=()=>{ST.pop();showOv()};
 
@@ -99,7 +99,7 @@ const h=await sha($("#pw").value),L=h==H2?2:h==H1?1:0;
 if(!L){S.fail=(S.fail||0)+1;if(S.fail>=5){S.lock=Date.now()+6e5;S.fail=0}save();return r.innerHTML='<p class="er">Kirish mumkin emas: parol noto\'g\'ri</p>'}
 S.fail=0;if(!S.admins.includes(S.uid))S.admins.push(S.uid);S.ok=Date.now();S.lvl=L;save();ST.pop();render();panel()};
 act.pwgo=async()=>{if(!SRV)return pwLocal();const r=$("#pr");try{const j=await api("/api/auth",{method:"POST",body:{password:$("#pw").value}});S.tok=j.token;S.lvl=j.lvl;if(!S.admins.includes(S.uid))S.admins.push(S.uid);S.ok=Date.now();save();await loadBaza().catch(()=>{});ST.pop();render();panel()}catch(e){r.innerHTML=`<p class="er">${E(e.message)}</p>`}};
-function panel(){ov(`<h3>Admin paneli (${S.lvl}-daraja)</h3><div class="menu"><button data-a="mlist">Mangalarni tahrirlash</button><button data-a="site">Sayt manzili</button><button data-a="nsend">Bildirishnoma yuborish</button>${S.lvl==2?'<button data-a="baza">Baza</button><button data-a="ver">Ilova versiyasi</button>':""}</div><p class="mu">4 soat faol bo'lmasangiz panel avtomatik yopiladi.</p>`)}
+function panel(){ov(`<h3>Admin paneli (${S.lvl}-daraja)</h3><div class="menu"><button data-a="mlist">Mangalarni tahrirlash</button><button data-a="site">Sayt manzili</button><button data-a="nsend">Bildirishnoma yuborish</button><button data-a="ptest">Push sinash</button>${S.lvl==2?`<button data-a="baza">Baza</button><button data-a="ver">Ilova versiyasi</button><div class="sw" data-a="shield"><span>Screenshot bloklash</span><i class="tg${SHIELD?" on":""}"><b></b></i></div>`:""}</div><p class="mu">4 soat faol bo'lmasangiz panel avtomatik yopiladi.</p>`)}
 act.mlist=()=>{if(!need())return;ov(`<h3>Mangalar</h3>${S.manga.map(m=>`<div class="row"><img src="${m.cover}" class="th"><b style="flex:1">${E(m.title)}</b><span><button data-a="clist" data-id="${m.id}">📑</button><button data-a="lnk" data-id="${m.id}">🔗</button><button data-a="medit" data-id="${m.id}">✎</button><button data-a="mdel" data-id="${m.id}">🗑</button></span></div>`).join("")}`)};
 act.medit=d=>{if(need())mform(S.manga.find(m=>m.id==d.id))};
 act.mdel=async d=>{if(need()&&confirm("Manga o'chirilsinmi?")){if(SRV){try{await api("/api/admin/manga/"+d.id,{method:"DELETE"});await sync()}catch(e){return toast("Xato: "+e.message)}}else S.manga=S.manga.filter(m=>m.id!=d.id);for(const k in S.saved)S.saved[k]=S.saved[k].filter(i=>i!=d.id);save();ST.pop();act.mlist();render()}};
@@ -144,7 +144,7 @@ act.cform=d=>{CM=S.manga.find(x=>x.id==d.id);PG=[];ov(`<div class="row"><img src
 function plist(){$("#pl").innerHTML=PG.map((b,i)=>`<div class="row"><img class="th" loading="lazy" decoding="async" src="${URL.createObjectURL(b)}"><b style="flex:1">${i+1}-bo'lak <span class="mu">${Math.round(b.size/1024)} KB</span></b><span><button data-a="pm" data-i="${i}" data-d="-1">↑</button><button data-a="pm" data-i="${i}" data-d="1">↓</button><button data-a="px" data-i="${i}">✕</button></span></div>`).join("");$("#cs").textContent=PG.length?`${PG.length} ta bo'lak · jami ${(PG.reduce((a,b)=>a+b.size,0)/1048576).toFixed(1)} MB`:""}
 act.pm=d=>{const i=+d.i,j=i+ +d.d;if(j<0||j>=PG.length)return;[PG[i],PG[j]]=[PG[j],PG[i]];plist()};
 act.px=d=>{PG.splice(+d.i,1);plist()};
-const MAXW=1080,CUT=1800,CH=()=>CM&&CM.type=="Manga"?15000:CUT;
+const MAXW=1080,CUT=1500,CH=()=>CM&&CM.type=="Manga"?15000:CUT;
 const dim=f=>new Promise(r=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{URL.revokeObjectURL(u);r([i.naturalWidth,i.naturalHeight])};i.onerror=()=>r([0,0]);i.src=u});
 function cutAt(s,y,e){const h=Math.min(240,e-y-500);if(h<=0)return e;const c=document.createElement("canvas");c.width=s.width;c.height=h;const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(s,0,e-h,s.width,h,0,0,s.width,h);const d=x.getImageData(0,0,s.width,h).data;
 for(let r=h-1;r>=0;r--){let lo=255,hi=0;for(let i=0;i<s.width;i+=6){const k=(r*s.width+i)*4,l=(d[k]+d[k+1]+d[k+2])/3;if(l<lo)lo=l;if(l>hi)hi=l}if(hi-lo<6)return e-h+r+1}return e}
@@ -208,7 +208,7 @@ if(ST.length)return act.back();
 if(TAB!="home"){TAB="home";return render()}
 if(Date.now()-bk<2500)return CA.exitApp();
 bk=Date.now();sync();toast("Yangilandi ✓ Chiqish uchun yana bosing")}
-async function chk(){if(!SRV||!BUILD)return;try{const v=await api("/api/version");if(v.min&&BUILD<v.min)upd(v.url)}catch(e){}}
+async function chk(){if(!SRV)return;try{const v=await api("/api/version");SHIELD=v.block!==false;applyShield(rdOpen());const t=document.querySelector(".tg");if(t)t.classList.toggle("on",SHIELD);if(BUILD&&v.min&&BUILD<v.min)upd(v.url)}catch(e){}}
 function upd(u){if($("#up"))return;UPD=1;document.body.insertAdjacentHTML("beforeend",`<div id="up"><div class="uc"><div class="ui">⚠</div><h2>Yangi versiya chiqdi</h2><p>Ilovadan foydalanishni davom ettirish uchun uni yangilang.</p></div><button class="ub" data-a="ugo" data-u="${E(u||"")}">Yangilash</button></div>`)}
 act.ugo=d=>window.open(d.u||"https://t.me/AniManxwaAppNews","_blank");
 act.ver=async()=>{if(S.lvl<2||!need())return;let v={min:0,url:""};try{v=await api("/api/version")}catch(e){}
@@ -221,7 +221,7 @@ const nhtml=n=>n.kind=="chap"?`<div class="nt">${E(n.title)}</div><div class="mu
 :`${n.image?`<img class="ni" src="${E(n.image)}" draggable="false">`:""}<div class="nt">${E(n.title)}</div><p>${E(n.body)}</p>${n.btn?`<button class="btn" data-a="nurl" data-u="${E(n.btn.u)}" data-t="${n.at}">${E(n.btn.t)}</button>`:""}`;
 function popN(){if($("#np")||UPD)return;const n=NL.filter(x=>x.at>(S.nseen||0)).sort((a,b)=>a.at-b.at)[0];if(n)document.body.insertAdjacentHTML("beforeend",`<div class="dg" id="np" data-t="${n.at}"><div class="bd" data-a="nx" data-t="${n.at}"></div><div class="dp nc">${nhtml(n)}<button class="bt2" data-a="nx" data-t="${n.at}" style="margin-top:10px">Yopish</button></div></div>`)}
 async function pollN(q){if(!SRV)return;try{NL=await api("/api/notif?uid="+S.uid);if(!S.nseen){S.nseen=NL.length?Math.max(...NL.map(n=>n.at)):1;save()}if(!q)popN();if(TAB=="prof"&&!ST.length)render()}catch(e){}}
-function pushDev(){if(!SRV)return;api("/api/dev",{method:"POST",body:{uid:S.uid,saved:[...new Set(Object.values(S.saved).flat())]}}).catch(()=>{})}
+function pushDev(){if(!SRV)return;api("/api/dev",{method:"POST",body:{uid:S.uid,saved:[...new Set(Object.values(S.saved).flat())],token:S.ftok||""}}).catch(()=>{})}
 act.nx=d=>{S.nseen=Math.max(S.nseen||0,+d.t||0);save();const e=$("#np");e&&e.remove();popN();if(TAB=="prof"&&!ST.length)render()};
 act.nread=d=>{act.nx(d);const g=S.manga.find(x=>x.id==d.m);if(!g)return toast("Manga topilmadi");const c=g.chapters.find(x=>x.num==d.n);closeOv();detail(g.id);if(c)act.read({id:g.id,c:c.id})};
 act.nurl=d=>{act.nx(d);/^animanxwa:/i.test(d.u)?dl(d.u):window.open(d.u,"_blank")};
@@ -258,10 +258,25 @@ const s=$("#cs"),tot=EP.filter(x=>x.b).length;let k=0,done=0,fail=null;
 const w=async()=>{while(k<EP.length&&!fail){const x=EP[k++];if(!x.b)continue;try{let u,er;for(let t=0;t<3&&!u;t++){try{u=await up(x.b)}catch(e){er=e}}if(!u)throw er;x.u=u;delete x.b;s.textContent="Yuklanmoqda "+(++done)+"/"+tot+"..."}catch(e){fail=e}}};
 await Promise.all([w(),w(),w()]);if(fail)return s.textContent="Xato: "+fail.message;
 try{s.textContent="Saqlanmoqda...";await api("/api/admin/manga/"+EC.mid+"/chapter/"+EC.cid,{method:"PUT",body:{num:+n,vol:+$("#e_v").value||0,season:+$("#e_s").value||0,title:$("#e_t").value.trim(),pages:EP.map(x=>({u:x.u,w:x.w,h:x.h}))}});delete PGC[EC.cid];await sync();closeOv();toast("Saqlandi ✓")}catch(e){s.textContent="Xato: "+e.message}};
-let VER="",BUILD=0,UPD=0,bk=0,NL=[],NI="",DM=0,EP=[],EC=null;
+/* ---- push bildirishnoma (Firebase): ruxsat so'rash va token yuborish ---- */
+const PN=window.Capacitor&&(Capacitor.Plugins&&Capacitor.Plugins.PushNotifications||(Capacitor.registerPlugin&&Capacitor.registerPlugin("PushNotifications")));
+async function initPush(){if(!PN||!SRV)return;try{let p=await PN.checkPermissions();if(p.receive!=="granted")p=await PN.requestPermissions();if(p.receive!=="granted")return;
+PN.addListener("registration",t=>{S.ftok=t.value;save();pushDev()});
+PN.addListener("registrationError",e=>console.log("push xato:",JSON.stringify(e)));
+PN.addListener("pushNotificationReceived",()=>pollN());
+PN.addListener("pushNotificationActionPerformed",a=>{const u=a.notification&&a.notification.data&&a.notification.data.url;if(u)dl(u);pollN()});
+try{await PN.createChannel({id:"default",name:"Yangiliklar",description:"Yangi boblar va xabarlar",importance:4,visibility:1})}catch(e){}
+await PN.register()}catch(e){console.log("push:",e&&e.message)}}
+act.ptest=async()=>{if(!need())return;toast("Yuborilmoqda...");try{await api("/api/admin/pushtest",{method:"POST",body:{uid:S.uid}});toast("Yuborildi ✓ (bir necha soniyada keladi)")}catch(e){toast(e.message)}};
+/* ---- screenshot himoyasi: o'qishda doim yoqiq, qolgan joyda admin hal qiladi ---- */
+const SG=window.Capacitor&&(Capacitor.Plugins&&Capacitor.Plugins.ScreenGuard||(Capacitor.registerPlugin&&Capacitor.registerPlugin("ScreenGuard")));
+const rdOpen=()=>(ST[ST.length-1]||"").startsWith("<!--rd-->");
+function applyShield(rd){const on=!!(rd||SHIELD);if(SG&&on!==SGon){SGon=on;try{SG.set({on}).catch(()=>{})}catch(e){}}}
+act.shield=async()=>{if(S.lvl<2||!need())return;const on=!SHIELD;try{await api("/api/admin/shield",{method:"POST",body:{on}});SHIELD=on;applyShield(rdOpen());const t=document.querySelector(".tg");if(t)t.classList.toggle("on",on);toast(on?"Screenshot bloklandi":"Screenshot ruxsat etildi")}catch(e){toast(e.message)}};
+let VER="",BUILD=0,UPD=0,bk=0,NL=[],NI="",DM=0,EP=[],EC=null,SHIELD=true,SGon=true;
 if(CA){CA.addListener("backButton",onBack);CA.addListener("appUrlOpen",e=>dl(e.url));CA.getLaunchUrl().then(r=>r&&r.url&&dl(r.url)).catch(()=>{});CA.getInfo().then(i=>{BUILD=+i.build;chk();VER=i.version+" ("+i.build+")";if(TAB=="prof"&&!ST.length)render()}).catch(()=>{})}
 
 if(S.ok&&!adminOn()){S.ok=0;S.lvl=0;save()}
 setInterval(()=>{if(S.ok&&!adminOn()){S.ok=0;S.lvl=0;save();if(!ST.length)render()}},6e4);
 setInterval(()=>{const c=$("#car");if(c){const w=c.clientWidth,i=Math.round(c.scrollLeft/w)+1;c.scrollTo({left:i*w>=c.scrollWidth-4?0:i*w,behavior:"smooth"})}},3500);
-render();sync();document.addEventListener("visibilitychange",()=>{if(!document.hidden){sync();chk()}});setInterval(()=>{if(!document.hidden)pollN()},12e4);
+render();sync();chk();document.addEventListener("visibilitychange",()=>{if(!document.hidden){sync();chk()}});setInterval(()=>{if(!document.hidden)pollN()},12e4);setTimeout(initPush,3300);
