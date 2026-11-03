@@ -13,7 +13,7 @@ open(m, 'w', encoding='utf-8').write(s.replace('</activity>', f + '</activity>',
 j = glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True)[0]
 t = open(j, encoding='utf-8').read()
 t = re.sub(r'public class MainActivity extends BridgeActivity\s*\{\s*\}',
-  'public class MainActivity extends BridgeActivity {\n  @Override public void onCreate(android.os.Bundle b){ super.onCreate(b); getWindow().setFlags(8192, 8192); }\n}', t)
+  'public class MainActivity extends BridgeActivity {\n  @Override public void onCreate(android.os.Bundle b){ registerPlugin(ScreenGuardPlugin.class); super.onCreate(b); getWindow().setFlags(8192, 8192); }\n}', t)
 open(j, 'w', encoding='utf-8').write(t)
 res = 'android/app/src/main/res'
 for z in ('icons.zip', 'scripts/icons.zip'):
@@ -41,6 +41,30 @@ try:
 except Exception as e:
     print('keytool topilmadi', e)
 
+# Push (FCM): faqat google-services.json bor bo'lsa yoqiladi (ilova yopiq bo'lganda ham bildirishnoma keladi)
+gs = next((p for p in ('google-services.json', 'scripts/google-services.json') if os.path.exists(p)), None)
+if gs:
+    import shutil
+    shutil.copy(gs, 'android/app/google-services.json')
+    subprocess.run(['npm', 'install', '@capacitor/push-notifications@^6.0.0'], check=True)
+    subprocess.run(['npx', 'cap', 'sync', 'android'], check=True)
+    rb = open('android/build.gradle', encoding='utf-8').read()
+    if 'com.google.gms:google-services' not in rb:
+        rb = re.sub(r'(buildscript\s*\{.*?dependencies\s*\{)', r"\1\n        classpath 'com.google.gms:google-services:4.4.2'", rb, count=1, flags=re.S)
+        open('android/build.gradle', 'w', encoding='utf-8').write(rb)
+    ab = open('android/app/build.gradle', encoding='utf-8').read()
+    if 'com.google.gms.google-services' not in ab:
+        open('android/app/build.gradle', 'a', encoding='utf-8').write("\napply plugin: 'com.google.gms.google-services'\n")
+    mf = open(m, encoding='utf-8').read()
+    if 'POST_NOTIFICATIONS' not in mf:
+        mf = mf.replace('<application', '<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <application', 1)
+    mf = re.sub(r'(<application[^>]*>)', r'\1\n        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat"/>\n        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/ax_red"/>\n        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="default"/>', mf, count=1)
+    open(m, 'w', encoding='utf-8').write(mf)
+    open(res + '/drawable/ic_stat.xml', 'w').write('<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24"><path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M12,2.5 L3.5,21.5 H7 L8.7,17.5 H15.3 L17,21.5 H20.5 Z M12,9 L14.2,14.5 H9.8 Z"/></vector>')
+    open(res + '/values/ax_colors.xml', 'w').write('<resources><color name="ax_red">#E11D2E</color></resources>')
+    print('Push (FCM) yoqildi')
+else:
+    print("google-services.json yo'q: push o'chiq")
 # server manzili (api.txt) ilovaga joylanadi; server rejimida parol xeshlari APK ichidan olib tashlanadi
 api = open('api.txt', encoding='utf-8').read().strip() if os.path.exists('api.txt') else ''
 for f in glob.glob('android/app/src/main/assets/public/app.js'):
@@ -48,3 +72,25 @@ for f in glob.glob('android/app/src/main/assets/public/app.js'):
     if api: a = re.sub(r'H1="[0-9a-f]{64}",H2="[0-9a-f]{64}"', 'H1="",H2=""', a)
     open(f, 'w', encoding='utf-8').write(a)
 print('Server manzili:', api or "(bosh: lokal rejim)")
+
+# screenshot himoyasini (FLAG_SECURE) JS dan yoqish/o'chirish uchun kichik plagin
+pkg = re.search(r'package\s+([\w.]+);', open(j, encoding='utf-8').read()).group(1)
+open(os.path.join(os.path.dirname(j), 'ScreenGuardPlugin.java'), 'w', encoding='utf-8').write("""package %s;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import android.view.WindowManager;
+@CapacitorPlugin(name = "ScreenGuard")
+public class ScreenGuardPlugin extends Plugin {
+  @PluginMethod
+  public void set(final PluginCall call) {
+    final boolean on = Boolean.TRUE.equals(call.getBoolean("on", true));
+    getActivity().runOnUiThread(new Runnable() { public void run() {
+      if (on) getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+      else getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+      call.resolve();
+    } });
+  }
+}
+""" % pkg)
