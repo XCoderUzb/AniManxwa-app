@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "44363407322",
+    "project_id": "animanxwa-320a5",
+    "storage_bucket": "animanxwa-320a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:44363407322:android:aa77ebcfdbf5e2092b2ae3",
+        "android_client_info": {
+          "package_name": "com.animanxwa.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWrWl4WH24QA7HW2lNjhu1wBoDQ1GRV9Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
