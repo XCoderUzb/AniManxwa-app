@@ -1,0 +1,47 @@
+name: "Windows ilova"
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Tayyorlash
+        shell: bash
+        run: |
+          mkdir -p www desk/build
+          for f in index.html style.css app.js; do if [ -f "$f" ]; then mv -f "$f" www/; fi; done
+          cp -r www desk/www
+          cp desktop-main.js desk/main.js
+          cp desktop-preload.js desk/preload.js
+          cp desktop-package.json desk/package.json
+          pip install pillow
+          python - <<'PY'
+          import re, os, io, zipfile
+          from PIL import Image
+          api = open('api.txt').read().strip() if os.path.exists('api.txt') else ''
+          p = 'desk/www/app.js'
+          a = open(p, encoding='utf-8').read().replace('__API__', api)
+          if api: a = re.sub(r'H1="[0-9a-f]{64}",H2="[0-9a-f]{64}"', 'H1="",H2=""', a)
+          open(p, 'w', encoding='utf-8').write(a)
+          z = zipfile.ZipFile('icons.zip')
+          im = Image.open(io.BytesIO(z.read('mipmap-xxxhdpi/ic_launcher.png'))).convert('RGBA').resize((256, 256))
+          im.save('desk/build/icon.ico', sizes=[(256,256),(128,128),(64,64),(48,48),(32,32),(16,16)])
+          PY
+      - run: npm install
+        working-directory: desk
+      - run: npx electron-builder --win portable --publish never
+        working-directory: desk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AniManxwa-Windows
+          path: desk/dist/*.exe
+      - name: Release yaratish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "win-${{ github.run_number }}" desk/dist/*.exe --title "AniManxwa Windows ${{ github.run_number }}" --notes "Windows (kompyuter) versiyasi"
