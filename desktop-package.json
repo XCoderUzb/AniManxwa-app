@@ -1,0 +1,5 @@
+{"name":"animanxwa-desktop","version":"1.0.0","description":"AniManxwa","author":"AniManxwa","main":"main.js",
+ "scripts":{"start":"electron ."},
+ "build":{"appId":"com.animanxwa.desktop","productName":"AniManxwa","files":["main.js","preload.js","www/**/*","build/icon.ico"],
+  "win":{"target":"portable","icon":"build/icon.ico"},"portable":{"artifactName":"AniManxwa-${version}.exe"}},
+ "devDependencies":{"electron":"^33.0.0","electron-builder":"^25.0.0"}}
