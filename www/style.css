@@ -170,3 +170,8 @@ body{flex-direction:row-reverse}
 .hz{height:calc(100vh - 125px)}
 .q,.in{max-width:640px}
 }
+
+.cr{display:flex;align-items:center;gap:8px}.crb{flex:1;min-width:0;display:flex;justify-content:space-between;gap:8px;padding:14px;margin:7px 0;border:0;border-radius:12px;background:var(--sf);color:#fff;font:15px system-ui;text-align:left}.crb b{font-weight:600}
+.dlb{flex:none;width:46px;height:46px;border-radius:12px;border:0;background:var(--sf);color:#fff;font-size:18px}
+.mrow{display:flex;gap:10px;justify-content:center;margin:12px 0}
+.sw2{padding:14px;border-radius:12px;background:var(--sf);margin:6px 0}.sw2 b{display:block;font-size:24px}.sw2 span{color:var(--mu);font-size:13px}
