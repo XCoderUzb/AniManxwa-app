@@ -16,11 +16,11 @@ let S=JSON.parse(localStorage.ax||"null")||{uid:rid(),name:"Foydalanuvchi",avata
 let TAB="home",Q="",TY="",GN="",ST=[],G=[],CV="",AV="",PG=[],CM=null;
 const save=()=>{localStorage.ax=JSON.stringify(S)};
 let SYNC=false;const PGC={};
-async function api(p,o={}){const h={"Content-Type":"application/json"};if(S.tok)h.Authorization="Bearer "+S.tok;let r;
+async function api(p,o={}){const h={"Content-Type":"application/json"};if(S.tok)h.Authorization="Bearer "+S.tok;if(S.gt)h["X-Auth"]=S.gt;let r;
 try{r=await fetch(SRV+p,{method:o.method||"GET",headers:h,body:o.body?JSON.stringify(o.body):undefined})}catch(e){throw Error("Internet yoki server ishlamayapti")}
 const j=await r.json().catch(()=>({}));if(r.status==401&&S.tok){S.tok="";S.ok=0;S.lvl=0;save();render();throw Error("Sessiya tugadi, qayta kiring")}if(!r.ok)throw Error(j.error||"Xato "+r.status);return j}
 const loadBaza=async()=>{S.baza=(await api("/api/admin/baza")).list;save()};
-async function sync(){if(!SRV)return;SYNC=true;try{S.manga=await api("/api/manga");save()}catch(e){}SYNC=false;render();pushDev();pollN();ads().then(()=>{if(TAB=="home"&&!ST.length)render()});me()}
+async function sync(){if(!SRV)return;SYNC=true;try{S.manga=await api("/api/manga");ageFilter();save()}catch(e){}SYNC=false;render();pushDev();pollN();ads().then(()=>{if(TAB=="home"&&!ST.length)render()});me()}
 const adminOn=()=>S.ok&&Date.now()-S.ok<144e5&&S.admins.includes(S.uid);
 const need=()=>{if(adminOn()){S.ok=Date.now();save();return true}S.ok=0;S.lvl=0;S.tok="";save();closeOv();render();toast("Admin sessiyasi tugadi");return false};
 const isSaved=id=>Object.values(S.saved).some(a=>a.includes(id));
@@ -68,9 +68,9 @@ act.pldel=d=>{if(confirm("Playlist o'chirilsinmi?")){delete S.saved[d.n];save();
 /* ---- manga sahifasi va o'qish ---- */
 function detail(id){const m=S.manga.find(x=>x.id==id);if(!m)return;DM=m.id;PGN.c=10;
 const sim=S.manga.filter(x=>x.id!=m.id).map(x=>[x,x.genres.filter(g=>m.genres.includes(g)).length]).filter(o=>o[1]).sort((a,b)=>b[1]-a[1]||(b[0].reads||0)-(a[0].reads||0)).slice(0,6).map(o=>o[0]),my=(S.rate||{})[m.id]||0;
-ov(`<div class="dh"><img src="${m.cover}" draggable="false"><div><h2>${E(m.title)}</h2>${badge(m).replace("b ","b st ")} ${isNew(m)?'<span class="n">YANGI BOB</span>':""}<p class="mu">${m.type} · ${m.status}<br>${[m.author,m.studio,m.year].filter(x=>x&&x!="-").map(E).join(" · ")}</p><p class="rtg">★ ${rt(m)} <span class="mu">(${m.rc||0})</span> · ${m.chapters.length} bob · 👁 ${m.reads||0}</p>${heart(m)} ${dlBtn(m)}</div></div><p>${E(m.desc)}</p>${adS()}<div class="chips">${m.genres.concat(m.tags).map(g=>`<span class="ch">${E(g)}</span>`).join("")}</div><div class="stars" id="stars">Baholang: ${[1,2,3,4,5].map(n=>`<span class="${my>=n?"on":""}" data-a="rate" data-id="${m.id}" data-v="${n}">★</span>`).join("")}</div><div class="row"><h4 style="margin:0">Boblar <span class="mu">${m.chapters.length}</span></h4><button class="srt" id="cs2" data-a="csrt">${S.csort=="asc"?"▲ 1→9":"▼ 9→1"}</button></div><input class="q" id="cq" placeholder="Bob qidirish..."><div id="cl">${crows(m,"")}</div>${sim.length?`<h4>Bunga o'xshash asarlar</h4><div class="gr">${sim.map(card).join("")}</div>`:""}`)}
+ov(`<div class="dh"><img src="${m.cover}" draggable="false"><div><h2>${E(m.title)}</h2>${badge(m).replace("b ","b st ")}${m.age?`<span class="b st ag${m.age>=18?" x":""}">${m.age}+</span>`:""} ${isNew(m)?'<span class="n">YANGI BOB</span>':""}<p class="mu">${m.type} · ${m.status}<br>${[m.author,m.studio,m.year].filter(x=>x&&x!="-").map(E).join(" · ")}</p><p class="rtg">★ ${rt(m)} <span class="mu">(${m.rc||0})</span> · ${m.chapters.length} bob · 👁 ${m.reads||0}</p>${heart(m)} ${dlBtn(m)}</div></div><p>${E(m.desc)}</p>${adS()}<div class="chips">${m.genres.concat(m.tags).map(g=>`<span class="ch">${E(g)}</span>`).join("")}</div><div class="stars" id="stars">Baholang: ${[1,2,3,4,5].map(n=>`<span class="${my>=n?"on":""}" data-a="rate" data-id="${m.id}" data-v="${n}">★</span>`).join("")}</div><div class="row"><h4 style="margin:0">Boblar <span class="mu">${m.chapters.length}</span></h4><button class="srt" id="cs2" data-a="csrt">${S.csort=="asc"?"▲ 1→9":"▼ 9→1"}</button></div><input class="q" id="cq" placeholder="Bob qidirish..."><div id="cl">${crows(m,"")}</div>${sim.length?`<h4>Bunga o'xshash asarlar</h4><div class="gr">${sim.map(card).join("")}</div>`:""}`)}
 act.open=d=>{detail(d.id);OPN++;if(!isPrem()){if(OPN%5==0)promoM();else if(OPN%3==0)fullAd()}};
-act.read=async d=>{const m=S.manga.find(x=>x.id==d.id);if(!m)return;if(m.pay=="Obuna"&&!isPrem())return promoM("Bu manga obunachilar uchun");const cs=[...m.chapters].sort((a,b)=>a.num-b.num),i=cs.findIndex(x=>x.id==d.c),c=cs[i];if(!c)return;
+act.read=async d=>{const m=S.manga.find(x=>x.id==d.id);if(!m)return;if(!ageGate(m,()=>act.read(d)))return;if(m.pay=="Obuna"&&!isPrem())return promoM("Bu manga obunachilar uchun");const cs=[...m.chapters].sort((a,b)=>a.num-b.num),i=cs.findIndex(x=>x.id==d.c),c=cs[i];if(!c)return;
 const oc=((S.off||{})[m.id]||{ch:{}}).ch[c.id];let pg=c.pages||PGC[c.id]||(oc&&oc.pages);if(!pg){toast("Yuklanmoqda...");try{pg=PGC[c.id]=(await api("/api/chapter/"+m.id+"/"+c.id)).pages}catch(e){return toast("Bobni yuklab bo'lmadi: "+e.message)}}
 if(oc){const ck="o"+c.id;if(PGC[ck])pg=PGC[ck];else{pg=await Promise.all(pg.map(async p=>({u:(await blobUrl(p.u||p))||(p.u||p),w:p.w,h:p.h})));PGC[ck]=pg}}
 if(d.rep)ST.pop();
@@ -80,7 +80,7 @@ ov(`<!--rd--><div class="rb"><button data-a="back">‹</button><div class="rtt">
 {const o=$("#o");o.scrollTop=0;const g=$("#pgs");if(g)g.scrollLeft=0}trk(pg.length,hz)};
 
 /* ---- profil ---- */
-function prof(){return `${adS()}<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2></div><div class="menu">${[["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["nlist","Bildirishnoma"+(UB()?` <span class="bdg">${UB()}</span>`:"")],["sub","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"],["ord","Ilova buyurtma berish"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft" id="idbox">ID: <b>${S.uid.replace(/(\d{4})(?=\d)/g,"$1 ")}</b><br><span class="mu">Nusxalash uchun ikki marta bosing</span><br>Hisob: ${S.bal} so'm<br><span class="mu">Versiya: ${VER||"-"} · Server: ${SRV?"ulangan":"yo'q"}</span></div>`}
+function prof(){return `${adS()}<div class="pf"><div class="av">${S.avatar?`<img src="${S.avatar}">`:E((S.name[0]||"?").toUpperCase())}</div><button class="pen" data-a="edit">✎</button><h2>${E(S.name)}</h2>${S.gu?`<p class="mu" style="margin:2px 0 0">${E(S.gu.email||"")}</p>`:""}</div><div class="menu">${[...(S.gt?[]:[["glog","Google orqali kirish"]]),...(S.gt&&!S.bd?[["bdask","Tug'ilgan sanani kiritish"]]:[]),["mem","Ma'lumot va xotira"],["idc","ID ma'lumotingiz"],["nlist","Bildirishnoma"+(UB()?` <span class="bdg">${UB()}</span>`:"")],["sub","Obuna olish"],["soon","Tarjimonlikka so'rov yuborish"],["soon","Qo'llab-quvvatlash (Donat)"],["ord","Ilova buyurtma berish"]].map(x=>`<button data-a="${x[0]}">${x[1]}</button>`).join("")}${S.gt?'<button data-a="gout">Akkauntdan chiqish</button>':""}${adminOn()?'<button class="red" data-a="adm">Admin paneli</button>':""}</div><div class="ft" id="idbox">ID: <b>${S.uid.replace(/(\d{4})(?=\d)/g,"$1 ")}</b><br><span class="mu">Nusxalash uchun ikki marta bosing</span><br>Hisob: ${S.bal} so'm<br><span class="mu">Versiya: ${VER||"-"} · Server: ${SRV?"ulangan":"yo'q"}</span></div>`}
 act.soon=()=>toast("Tez orada");
 act.edit=()=>{AV=S.avatar;ov(`<h3>Profilni tahrirlash</h3><label class="bt2">Rasm tanlash<input type="file" accept="image/*" id="av" hidden></label>${fl("Ismingiz",`<input class="in" id="nm" value="${E(S.name)}" placeholder="Masalan: Ali">`)}<button class="btn" data-a="psave">Saqlash</button>`)};
 act.psave=()=>{S.name=$("#nm").value.trim()||S.name;S.avatar=AV;save();closeOv();render()};
@@ -120,7 +120,7 @@ const fl=(t,h)=>`<div class="fl"><span class="lb">${t}</span>${h}</div>`;
 const seg=(k,o,c="")=>`<div class="seg ${c}" data-k="${k}">${o.map(x=>`<button type="button" class="${x[0]}${FV[k]==x[0]?" on":""}" data-a="seg" data-k="${k}" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>`;
 act.seg=d=>{FV[d.k]=d.v;document.querySelectorAll(`.seg[data-k="${d.k}"] button`).forEach(b=>b.classList.toggle("on",b.dataset.v==d.v))};
 const vv=x=>x&&x!="-"?E(x):"";
-function mform(m){const d=m||{title:"",desc:"",author:"",studio:"",genres:[],tags:[],type:"Manga",status:"Ongoing",pay:"Bepul",vols:0,seasons:0,year:new Date().getFullYear(),cover:""};G=[...d.genres];CV=d.cover;FV={type:d.type,status:d.status,pay:d.pay};
+function mform(m){const d=m||{title:"",desc:"",author:"",studio:"",genres:[],tags:[],type:"Manga",status:"Ongoing",pay:"Bepul",vols:0,seasons:0,year:new Date().getFullYear(),cover:""};G=[...d.genres];CV=d.cover;FV={type:d.type,status:d.status,pay:d.pay,age:d.age||0};
 ov(`<h3>${m?"Mangani tahrirlash":"Manga qo'shish"}</h3><div id="mf" data-id="${m?m.id:""}">
 ${fl("Nomi *",`<input class="in" id="f_title" placeholder="Masalan: Soya ovchisi" value="${vv(d.title)}">`)}
 ${fl("Tavsif",`<textarea class="in" id="f_desc" placeholder="Manga haqida qisqacha yozing...">${E(d.desc)}</textarea>`)}
@@ -129,6 +129,7 @@ ${fl("Chiqqan yili",`<input class="in" id="f_year" type="number" placeholder="20
 ${fl("Turi",seg("type",TY2,"ty"))}
 ${fl("Holat",seg("status",[["Ongoing","⏳ Ongoing"],["Tugallangan","✅ Tugallangan"]]))}
 ${fl("To'lov",seg("pay",[["Obuna","Obuna"],["Bepul","Bepul"]]))}
+${fl("Yosh chegarasi (18+ yosh kattalarga ko'rinadi, kichiklarga umuman chiqmaydi)",seg("age",[[0,"Hamma"],[6,"6+"],[12,"12+"],[13,"13+"],[16,"16+"],[18,"18+"]]))}
 <div class="two">${fl("Jildlar soni (0 = yo'q)",`<input class="in" id="f_vols" type="number" min="0" value="${d.vols}">`)}${fl("Fasllar soni (0 = yo'q)",`<input class="in" id="f_seasons" type="number" min="0" value="${d.seasons}">`)}</div>
 ${fl("Janrlar (bir nechtasini tanlang)",`<div class="chips" id="gc">${gchips()}</div><div class="two"><input class="in" id="gx" placeholder="Boshqa janr (o'zingiz yozing)"><button class="bt2" data-a="gadd">Qo'shish</button></div>`)}
 ${fl("Teglar (vergul bilan, ixtiyoriy)",`<input class="in" id="f_tags" placeholder="Masalan: qilich, sehr, qasos" value="${E(d.tags.join(", "))}">`)}
@@ -136,7 +137,7 @@ ${fl("Muqova rasmi (7:10)",`<label class="bt2">Rasm tanlash<input type="file" ac
 <button class="btn" data-a="msave">${m?"Saqlash":"Manga qo'shish"}</button></div>`)}
 act.msave=async()=>{if(!need())return;const g=i=>$("#f_"+i).value.trim(),id=$("#mf").dataset.id;if(!g("title"))return toast("Nomini yozing");
 let cv=CV;if(cv.startsWith("data:image/jpeg")&&S.baza.length){try{cv=await up(await(await fetch(cv)).blob())}catch(e){toast("Muqova bazaga yuklanmadi: "+e.message)}}
-const d={title:g("title"),desc:g("desc"),author:g("author"),studio:g("studio"),year:+g("year")||0,type:FV.type,status:FV.status,pay:FV.pay,vols:+g("vols")||0,seasons:+g("seasons")||0,genres:G,tags:g("tags").split(",").map(s=>s.trim()).filter(Boolean),cover:cv||art(g("title"),3)};
+const d={title:g("title"),desc:g("desc"),author:g("author"),studio:g("studio"),year:+g("year")||0,type:FV.type,status:FV.status,pay:FV.pay,age:+FV.age||0,vols:+g("vols")||0,seasons:+g("seasons")||0,genres:G,tags:g("tags").split(",").map(s=>s.trim()).filter(Boolean),cover:cv||art(g("title"),3)};
 if(SRV){try{await api(id?"/api/admin/manga/"+id:"/api/admin/manga",{method:id?"PUT":"POST",body:d});await sync()}catch(e){return toast("Xato: "+e.message)}}else if(id)Object.assign(S.manga.find(m=>m.id==id),d);else S.manga.push({id:Math.max(0,...S.manga.map(m=>m.id))+1,reads:0,chapters:[],...d});
 save();closeOv();render();toast("Saqlandi")};
 async function up(b,rt){let err;for(const z of S.baza){try{const f=new FormData();f.append("file",b);f.append("upload_preset",z.preset);const j=await(await fetch(`https://api.cloudinary.com/v1_1/${z.cloud}/${rt||"image"}/upload`,{method:"POST",body:f})).json();if(j.secure_url)return j.secure_url;err=j.error&&j.error.message}catch(e){err=e.message}}throw Error(err||"Baza qo'shilmagan (Admin paneli → Baza)")}
@@ -145,13 +146,13 @@ act.cform=d=>{CM=S.manga.find(x=>x.id==d.id);PG=[];ov(`<div class="row"><img src
 function plist(){$("#pl").innerHTML=PG.map((b,i)=>`<div class="row"><img class="th" loading="lazy" decoding="async" src="${URL.createObjectURL(b)}"><b style="flex:1">${i+1}-bo'lak <span class="mu">${Math.round(b.size/1024)} KB</span></b><span><button data-a="pm" data-i="${i}" data-d="-1">↑</button><button data-a="pm" data-i="${i}" data-d="1">↓</button><button data-a="px" data-i="${i}">✕</button></span></div>`).join("");$("#cs").textContent=PG.length?`${PG.length} ta bo'lak · jami ${(PG.reduce((a,b)=>a+b.size,0)/1048576).toFixed(1)} MB`:""}
 act.pm=d=>{const i=+d.i,j=i+ +d.d;if(j<0||j>=PG.length)return;[PG[i],PG[j]]=[PG[j],PG[i]];plist()};
 act.px=d=>{PG.splice(+d.i,1);plist()};
-const MAXW=1080,CUT=1500,CH=()=>CM&&CM.type=="Manga"?15000:CUT;
+const MAXW=1440,CUT=1500,CH=()=>CM&&CM.type=="Manga"?15000:CUT;
 const dim=f=>new Promise(r=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{URL.revokeObjectURL(u);r([i.naturalWidth,i.naturalHeight])};i.onerror=()=>r([0,0]);i.src=u});
 function cutAt(s,y,e){const h=Math.min(240,e-y-500);if(h<=0)return e;const c=document.createElement("canvas");c.width=s.width;c.height=h;const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(s,0,e-h,s.width,h,0,0,s.width,h);const d=x.getImageData(0,0,s.width,h).data;
 for(let r=h-1;r>=0;r--){let lo=255,hi=0;for(let i=0;i<s.width;i+=6){const k=(r*s.width+i)*4,l=(d[k]+d[k+1]+d[k+2])/3;if(l<lo)lo=l;if(l>hi)hi=l}if(hi-lo<6)return e-h+r+1}return e}
 async function enc(s,y,h){const c=document.createElement("canvas");c.width=s.width;c.height=h;c.getContext("2d").drawImage(s,0,y,s.width,h,0,0,s.width,h);let b;
-for(const q of [.82,.7,.55]){b=await new Promise(r=>c.toBlob(r,"image/webp",q));if(!b||b.type!="image/webp"){b=null;break}if(b.size<7e5)break}
-if(!b)b=await new Promise(r=>c.toBlob(r,"image/jpeg",.8));b.w=s.width;b.h=h;c.width=c.height=0;return b}
+for(const q of [.95,.9,.85,.78]){b=await new Promise(r=>c.toBlob(r,"image/webp",q));if(!b||b.type!="image/webp"){b=null;break}if(b.size<1.6e6)break}
+if(!b)b=await new Promise(r=>c.toBlob(r,"image/jpeg",.92));b.w=s.width;b.h=h;c.width=c.height=0;return b}
 async function pack(s){const o=[];let y=0;while(y<s.height){let e=Math.min(s.height,y+CH());if(e<s.height)e=cutAt(s,y,e);o.push(await enc(s,y,e-y));y=e}return o}
 async function addImg(f){const[w]=await dim(f);if(!w)throw Error("rasm emas");let b;try{b=await createImageBitmap(f,w>MAXW?{resizeWidth:MAXW,resizeQuality:"high"}:{})}catch(e){b=await createImageBitmap(f)}
 for(const x of await pack(b))PG.push(x);b.close&&b.close()}
@@ -189,10 +190,11 @@ ov(`<h3>Havolalar</h3><p class="mu">Bosib nusxalang.${S.site?"":" Sayt manzili k
 act.cpy=d=>copy(d.u,"Havola nusxalandi ✓");
 act.site=()=>{if(need())ask("Sayt manzili",S.site||"",u=>{S.site=u.replace(/\/+$/,"");save();toast("Saqlandi ✓")},"https://....github.io/...")};
 act.btest=async d=>{const z=S.baza[+d.i];toast("Sinalmoqda...");try{const f=new FormData();f.append("file","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGN4KKsHAAMPAS39S+cAAAAAAElFTkSuQmCC");f.append("upload_preset",z.preset);const j=await(await fetch(`https://api.cloudinary.com/v1_1/${z.cloud}/image/upload`,{method:"POST",body:f})).json();toast(j.secure_url?"Baza ishlayapti ✓":"Xato: "+(j.error&&j.error.message))}catch(e){toast("Xato: "+e.message)}};
-const dl=u=>{const p=String(u||"").replace(/^[a-z][\w+.-]*:\/\//i,"").split(/[?#]/)[0].split("/").filter(Boolean).map(x=>decodeURIComponent(x).toLowerCase());
+const dl=u=>{const lg=/^[a-z][\w+.-]*:\/\/login\/?\?(.*)$/i.exec(String(u||""));if(lg){const q=new URLSearchParams(lg[1]);return gfinish(q.get("code")||"",q.get("n")||"")}
+const p=String(u||"").replace(/^[a-z][\w+.-]*:\/\//i,"").split(/[?#]/)[0].split("/").filter(Boolean).map(x=>decodeURIComponent(x).toLowerCase());
 if(!/^(manga|manhwa|manhua|novella)$/.test(p[0]||"")||!p[1])return;
 const g=S.manga.find(m=>m.type.toLowerCase()==p[0]&&slug(m.title)==p[1])||S.manga.find(m=>slug(m.title)==p[1])||S.manga.find(m=>m.id==p[1]);
-if(!g){if(SRV&&!dl.t){dl.t=1;return sync().then(()=>{dl(u);dl.t=0})}return toast("Manga topilmadi")}closeOv();detail(g.id);
+if(!g){if(SRV&&!dl.t){dl.t=1;return sync().then(()=>{dl(u);dl.t=0})}return toast(S.gt?"Manga topilmadi":"Manga topilmadi. Agar u 18+ bo'lsa, Google orqali kiring")}closeOv();detail(g.id);
 const c=p[2]&&(g.chapters.find(c=>c.num==p[2])||g.chapters.find(c=>c.id==p[2]));if(c)act.read({id:g.id,c:c.id})};
 const CA=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
 /* ---- tartiblash, orqaga tugmasi, majburiy yangilash, bildirishnoma, o'qish yo'nalishi ---- */
@@ -351,4 +353,29 @@ if(CA){CA.addListener("backButton",onBack);CA.addListener("appUrlOpen",e=>dl(e.u
 if(S.ok&&!adminOn()){S.ok=0;S.lvl=0;save()}
 setInterval(()=>{if(S.ok&&!adminOn()){S.ok=0;S.lvl=0;save();if(!ST.length)render()}},6e4);
 setInterval(()=>{const c=$("#car");if(c){const w=c.clientWidth,i=Math.round(c.scrollLeft/w)+1;c.scrollTo({left:i*w>=c.scrollWidth-4?0:i*w,behavior:"smooth"})}},3500);
-render();sync();chk();document.addEventListener("visibilitychange",()=>{if(!document.hidden){sync();chk()}});setInterval(()=>{if(!document.hidden)pollN()},12e4);setTimeout(initPush,3300);
+/* ---- Google orqali kirish va yosh chegarasi ---- */
+const SITE0="https://xcoderuzb.github.io/AniManxwa-site";let AGO=null;
+const ageOf=bd=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(bd||"");if(!m)return null;const n=new Date();let a=n.getFullYear()-+m[1];if(n.getMonth()+1<+m[2]||(n.getMonth()+1==+m[2]&&n.getDate()<+m[3]))a--;return a>=0&&a<130?a:null};
+const age=()=>adminOn()?99:ageOf(S.bd);
+const ageFilter=()=>{if(!Array.isArray(S.manga)||!SRV)return;if(!(age()>=18))S.manga=S.manga.filter(m=>!((+m.age||0)>=18))}; // 18+ asarlar 18 yoshga to'lmaganlar va kirmaganlarga ko'rinmaydi
+function ageGate(m,go){const n=+m.age||0;if(n<=0||adminOn())return true;const a=age();
+if(n>=18&&!(a>=18)){S.gt?toast("Bu asar faqat 18 yoshdan katta foydalanuvchilar uchun"):act.glog();return false}
+if(a==null||a>=n||(S.ageOk||{})[m.id])return true;
+const tp=String(m.type||"manga").toLowerCase();AGO=go;
+document.body.insertAdjacentHTML("beforeend",`<div class="dg" id="ag"><div class="bd"></div><div class="dp nc"><div class="agb">${n}+</div><p class="mu">Siz hali ${n} yoshga to'lmagansiz, shu sababli ${tp} o'qish tavsiya etilmaydi. Sababi ${tp}ni tushunmay qolishingiz mumkin.</p><h3 class="agq">O'qishni xohlaysizmi?</h3><div class="two"><button class="btn" data-a="agyes" data-id="${m.id}">Ha</button><button class="bt2" data-a="agno">Keyinroq</button></div></div></div>`);return false}
+act.agno=()=>{const e=$("#ag");e&&e.remove();AGO=null};
+act.agyes=d=>{(S.ageOk=S.ageOk||{})[d.id]=1;save();const f=AGO;act.agno();f&&f()};
+act.glog=()=>{if(!SRV)return toast("Server ulanmagan");S.gn=[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,"0")).join("");save();
+ov(`<h3>Google orqali kirish</h3><p class="mu">Brauzer ochiladi: Google akkauntingizni tanlang va ruxsat bering, so'ng ilovaga qaytasiz. Yoshingiz Google akkauntdan olinadi va 18+ asarlarni ko'rsatish uchun ishlatiladi.</p><button class="btn" data-a="gopen">Google bilan davom etish</button><p class="mu">Ilova o'zi ochilmasa (masalan, o'rnatilmagan Windows versiyasi), saytda chiqqan kodni kiriting:</p><input class="in" id="gcode" placeholder="Kod (masalan: A1B2C3D4)" autocapitalize="characters"><button class="bt2" data-a="gcodego" style="margin-top:8px">Tasdiqlash</button>`)};
+act.gopen=()=>window.open(SITE0+"/login.html?n="+S.gn,"_blank");
+act.gcodego=()=>gfinish($("#gcode").value,S.gn);
+async function gfinish(code,n){if(!code||!n||n!==S.gn)return toast("Kirish so'rovi eskirgan. «Google orqali kirish» ni qaytadan bosing");
+try{const j=await api("/api/auth/exchange",{method:"POST",body:{code,n,uid:S.uid}});S.gt=j.token;S.gu=j.user;S.bd=j.user.bd||"";S.gn="";if(j.uid)S.uid=j.uid;
+if(S.name=="Foydalanuvchi"&&j.user.name)S.name=j.user.name;if(!S.avatar&&j.user.picture)S.avatar=j.user.picture;
+save();closeOv();ageFilter();await sync();toast("Xush kelibsiz"+(j.user.name?", "+j.user.name:"")+" ✓");if(!S.bd)act.bdask()}catch(e){toast(e.message)}}
+act.bdask=()=>ov(`<h3>Tug'ilgan sana</h3><p class="mu">Google akkauntingiz tug'ilgan sanani bermadi. Yosh chegarasi uchun uni kiriting. Sana bir marta kiritiladi va keyin o'zgartirib bo'lmaydi.</p><input class="in" id="bdi" type="date" max="${new Date().toISOString().slice(0,10)}"><button class="btn" data-a="bdgo">Saqlash</button>`);
+act.bdgo=async()=>{const v=$("#bdi").value;if(!v)return toast("Sanani tanlang");try{const j=await api("/api/auth/bd",{method:"POST",body:{bd:v}});S.gt=j.token;S.gu=j.user;S.bd=j.user.bd||"";save();closeOv();ageFilter();await sync();toast("Saqlandi ✓")}catch(e){toast(e.message)}};
+act.gout=()=>{if(!confirm("Akkauntdan chiqilsinmi?"))return;S.gt="";S.gu=null;S.bd="";S.ageOk={};save();ageFilter();sync();render();toast("Chiqdingiz")};
+async function gme(){if(!SRV||!S.gt)return;try{const j=await api("/api/auth/me");S.gt=j.token;S.gu=j.user;S.bd=j.user.bd||"";save();ageFilter()}catch(e){if(/Sessiya|Akkaunt/.test(e.message)){S.gt="";S.gu=null;S.bd="";save();ageFilter();sync()}}}
+
+ageFilter();render();sync();gme();chk();document.addEventListener("visibilitychange",()=>{if(!document.hidden){sync();chk()}});setInterval(()=>{if(!document.hidden)pollN()},12e4);setTimeout(initPush,3300);
