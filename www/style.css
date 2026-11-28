@@ -105,6 +105,7 @@ textarea.in{min-height:80px}
 .mi{color:#fff;overflow:hidden;max-width:0;opacity:0;animation:ex .28s forwards;animation-delay:calc(.8s + var(--i)*.06s)}
 .mi.m{color:var(--rd);text-shadow:0 0 14px #e11d2e99}
 @keyframes ex{to{max-width:1.2em;opacity:1}}
+
 .row .srt{border:1px solid var(--rd);border-radius:10px;padding:6px 12px;font:600 13px system-ui}
 .bdg{background:var(--rd);color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;margin-left:6px}
 .dp.nc{text-align:center;max-height:85vh;overflow-y:auto}.nt{font:800 22px/1.2 system-ui;margin:8px 0 2px}.nn{font:800 20px system-ui;color:var(--rd);margin:4px 0 12px}
@@ -119,6 +120,7 @@ textarea.in{min-height:80px}
 .uc h2{margin:12px 0 6px}.uc p{color:var(--mu);margin:0}
 .ub{display:block;width:100%;max-width:360px;padding:16px;border:0;border-radius:14px;background:var(--rd);color:#fff;font:700 17px system-ui;animation:ubin .8s .3s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes ubin{from{transform:translateY(140px);opacity:0}}
+
 .gr{grid-template-columns:repeat(3,minmax(0,1fr))}.pg{grid-template-columns:repeat(2,minmax(0,1fr))}
 .gr>*,.pg>*,.two>*,.t3>*{min-width:0}
 .p img{position:absolute;inset:0}
@@ -135,10 +137,12 @@ textarea.in{min-height:80px}
 .rf{position:sticky;bottom:0;display:flex;align-items:center;background:#000;padding:6px 10px;z-index:3}
 .rf button{background:none;border:0;color:#fff;font-size:24px;padding:6px 14px}.rf button[disabled]{opacity:.25}.rf .lk{font-size:18px}.rf .lk.on{color:var(--rd)}
 .hz{height:calc(100dvh - 125px);margin:0}
+
 .sw{display:flex;justify-content:space-between;align-items:center;padding:14px;margin:7px 0;border-radius:12px;background:var(--sf)}
 .tg{width:50px;height:28px;border-radius:99px;background:#3a3a42;position:relative;transition:.2s;flex:none}
 .tg b{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
 .tg.on{background:var(--rd)}.tg.on b{left:25px}
+
 .ad{display:flex;align-items:center;gap:12px;position:relative;padding:12px;margin:10px 0;border-radius:14px;background:#1c1d22;border:1px solid #2a2c33}
 .ai{width:54px;height:54px;flex:none;border-radius:12px;overflow:hidden;background:#4b5160}.ai img,.ai video{width:100%;height:100%;object-fit:cover;display:block}
 .ai.sm{width:44px;height:44px;display:grid;place-items:center}
@@ -152,6 +156,7 @@ textarea.in{min-height:80px}
 #af .ab{display:flex;flex-direction:column;gap:8px;padding:8px 16px 18px}#af .ab .btn,#af .ab .bt2{margin:0}
 #af .ax{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:50%;border:0;background:#000a;color:#fff;font:700 18px system-ui}
 .rdc .ad{margin:10px 12px}
+/* ---- kompyuter (Windows) uchun moslashuv ---- */
 @media (min-width:900px){
 body{flex-direction:row-reverse}
 #nav{flex-direction:column;justify-content:flex-start;width:96px;height:100%;border-top:0;border-right:1px solid #26262b;padding-top:18px;gap:6px}
@@ -163,25 +168,37 @@ body{flex-direction:row-reverse}
 .sp{max-width:520px;left:0;right:0;margin:0 auto}
 .dp{max-width:420px}
 .hz{height:calc(100vh - 125px)}
+.q,.in{max-width:640px}
 }
-.cr{display:flex;align-items:center;gap:8px}.crb{flex:1;min-width:0;display:flex;justify-content:space-between;gap:8px;padding:14px;margin:7px 0;border:0;border-radius:12px;background:var(--sf);color:#fff;text-align:left}
+
+.cr{display:flex;align-items:center;gap:8px}.crb{flex:1;min-width:0;display:flex;justify-content:space-between;gap:8px;padding:14px;margin:7px 0;border:0;border-radius:12px;background:var(--sf);color:#fff;font:15px system-ui;text-align:left}.crb b{font-weight:600}
 .dlb{flex:none;width:46px;height:46px;border-radius:12px;border:0;background:var(--sf);color:#fff;font-size:18px}
 .mrow{display:flex;gap:10px;justify-content:center;margin:12px 0}
+.sw2{padding:14px;border-radius:12px;background:var(--sf);margin:6px 0}.sw2 b{display:block;font-size:24px}.sw2 span{color:var(--mu);font-size:13px}
+
 .mbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:99px;border:1px solid #2c2c33;background:linear-gradient(#1c1c22,#141418);color:#fff;font:600 14px system-ui;box-shadow:0 2px 10px #0006}
 .mbtn:active{transform:scale(.96)}.mbtn svg{color:var(--rd)}
 .cnt{background:var(--rd);color:#fff;border-radius:99px;padding:1px 9px;font:700 12px system-ui;font-style:normal}
 .dlb{display:grid;place-items:center;color:#cfd3e0}.dlb.ok{color:#22c55e}
 .dlm{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid #2a2a30;background:#1a1a1f;color:#fff;font:600 14px system-ui}.dlm.ok{color:#22c55e;border-color:#1e5a34}
 .spin{animation:spn .9s linear infinite}@keyframes spn{to{transform:rotate(360deg)}}
+
 .b.ag{background:#4a4a52}.b.ag.x{background:#a31515}
 .agb{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;border:3px solid var(--rd);display:grid;place-items:center;font:800 22px system-ui;color:var(--rd)}
 .agq{font:800 24px/1.2 system-ui;margin:16px 0 8px}
-/* PDF, chapter locks and featured-card add-ons */
-.ax-pdf-nav i{font-style:normal}.ax-pdf-nav{font-size:11px!important;cursor:pointer}
-.ax-pdf-overlay,.ax-dialog{position:fixed;inset:0;z-index:310;background:#000d;display:flex;align-items:center;justify-content:center;padding:16px}
-.ax-pdf-panel,.ax-dialog-card{width:min(100%,720px);max-height:92dvh;overflow:auto;background:#141417;border:1px solid #34343b;border-radius:18px;padding:18px;color:#f4f4f5;box-shadow:0 18px 70px #000a}
-.ax-pdf-panel header{display:flex;align-items:center;justify-content:space-between}.ax-pdf-panel header small{color:#ff6470}.ax-pdf-panel h2{margin:2px 0 0}.ax-x{background:none;border:0;color:white;font-size:30px}.ax-muted{color:#aaa;font-size:13px}.ax-pdf-actions{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}.ax-primary,.ax-secondary,.ax-sub-link{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;padding:11px 14px;background:#e11d2e;color:white;font-weight:700;text-decoration:none;cursor:pointer}.ax-primary input{display:none}.ax-secondary{background:#29292f;color:#f4f4f5}.ax-secondary:disabled{opacity:.45}.ax-picked{font-size:12px;color:#aaa;overflow-wrap:anywhere;margin:10px 0}.ax-reader{margin-top:14px}.ax-reader-bar{display:flex;align-items:center;justify-content:flex-end;gap:8px}.ax-reader-bar b{margin-right:auto}.ax-reader canvas{display:block;max-width:100%;height:auto;margin:10px auto;background:#fff}.ax-result{margin:14px 0;padding:14px;border:1px solid #176a43;background:#10251b;border-radius:12px}.ax-result>b{display:block;color:#62e4a0}.ax-result>span{display:block;color:#bbb;font-size:12px;margin:5px 0 10px}.ax-result>div{display:flex;gap:8px}.ax-result a,.ax-result button{flex:1;text-align:center;padding:10px 6px;border:0;border-radius:8px;background:#16a34a;color:#fff;font-weight:700;text-decoration:none}.ax-result button{background:#29292f}.ax-ad{position:relative;display:flex;align-items:center;gap:10px;padding:10px;margin-top:14px;border:1px solid #303037;background:#202025;border-radius:12px;color:white;text-decoration:none}.ax-ad img{width:48px;height:48px;object-fit:cover;border-radius:8px}.ax-ad small{margin-left:auto;color:#aaa}.ax-dialog-card{text-align:center;width:min(100%,360px)}.ax-lock{font-size:40px}.ax-sub-link{width:100%;margin:8px 0}.ax-field{display:block;margin:10px 0;color:#aaa;font-size:12px}.ax-field select{display:block;width:100%;margin-top:5px;padding:11px;border:1px solid #333;border-radius:9px;background:#17171a;color:white}
-/* Manga payment badges are replaced by chapter-level locks. */
-.b.r,.b.g{display:none!important}
-.ban{transition:transform .25s ease,opacity .25s ease}
-@media(min-width:900px){.ax-pdf-panel{max-height:90vh}.ax-pdf-nav{width:100%}}
+
+/* karusel (mangalab uslubi) */
+.car2{--cw:min(54vw,230px);position:relative;display:flex;align-items:center;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:18px calc(50% - var(--cw)/2) 22px;margin:6px -12px 4px;scrollbar-width:none}
+.car2::-webkit-scrollbar{display:none}
+.cc{position:relative;flex:0 0 var(--cw);aspect-ratio:7/10;scroll-snap-align:center;border-radius:14px;overflow:hidden;transform:scale(.8);opacity:.6;transition:transform .3s,opacity .3s,box-shadow .3s;background:#1a1a1f;border:1px solid #ffffff14}
+.cc img{width:100%;height:100%;object-fit:cover;display:block}
+.cc.on{transform:scale(1);opacity:1;box-shadow:0 12px 32px #000b;border-color:#8b7bff66}
+.crt{position:absolute;left:8px;top:8px;background:#000a;padding:3px 8px;border-radius:8px;font:700 12px system-ui;color:#ffd24a}
+.ctt{position:absolute;left:0;right:0;bottom:0;padding:34px 12px 12px;background:linear-gradient(transparent,#000e);font:700 15px/1.2 system-ui;opacity:0;transition:opacity .3s}
+.cc.on .ctt{opacity:1}.cc .n{left:auto;right:8px;top:8px;bottom:auto}
+/* boblar ro'yxati */
+.yana{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;color:#8a8fa5;font:600 13px system-ui;padding:12px 0}
+.yana:before,.yana:after{content:"";flex:1;height:1px;background:#262630}.yana svg{width:16px;height:16px}
+.rdn b{color:#ff6b6b}.cont{color:#ff8a8a;font-style:normal}.lk2{font-style:normal;font-size:12px}
+.limt{flex:1;text-align:right;color:#8a8fa5;font-size:12px;margin:0 10px}
+.cont-btn{display:block;width:100%;margin:12px 0;padding:13px;border-radius:12px;background:var(--rd);color:#fff;border:0;font:700 15px system-ui}
